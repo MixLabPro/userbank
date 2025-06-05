@@ -2,281 +2,283 @@
 
 <div align="center">
   
-**个人数据银行桌面应用**
+**Personal Data Bank Desktop Application**
 
 [![Tauri](https://img.shields.io/badge/Tauri-2.0+-blue.svg)](https://tauri.app)
 [![React](https://img.shields.io/badge/React-18+-green.svg)](https://reactjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://typescriptlang.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-*从"数据寄存在各个平台" 到 "拥有自己的数据银行"*
+*From "Data Hosted on Various Platforms" to "Owning Your Own Data Bank"*
 
-[快速开始](#-快速开始) • [核心功能](#-核心功能) • [使用指南](#-使用指南) • [开发指南](#-开发指南)
+[Quick Start](#-quick-start) • [Core Features](#-core-features) • [User Guide](#-user-guide) • [Development Guide](#-development-guide)
 
 </div>
 
 ---
 
-## 🎯 什么是UserBank？
+## 🎯 What is UserBank?
 
-UserBank 全称是**Unified Smart Experience Records Bank**，一个基于**Tauri 2.0**构建的跨平台桌面应用。UserBank让你能够统一管理与AI交互产生的所有智能经验记录，通过现代化的桌面界面，安全地存储和管理你的个人数据。
+UserBank stands for **Unified Smart Experience Records Bank**, a cross-platform desktop application built on **Tauri 2.0**. UserBank enables you to uniformly manage all intelligent experience records generated from AI interactions, securely storing and managing your personal data through a modern desktop interface.
 
-### 🔗 UserBank Core集成
+### 🔗 UserBank Core Integration
 
-UserBank桌面应用内置了**UserBank Core**作为其数据引擎，提供完整的MCP（Model Context Protocol）支持：
+The UserBank desktop application has **UserBank Core** built-in as its data engine, providing complete MCP (Model Context Protocol) support:
 
-- **MCP服务器**：内置标准化的MCP服务器，支持stdio和SSE两种通信模式
-- **标准化接口**：通过MCP协议为所有支持的AI应用提供统一的数据访问接口
-- **实时同步**：桌面应用的数据变更会实时同步到MCP服务，确保AI应用获取最新信息
-- **无缝集成**：一键启动MCP服务，无需额外配置即可与Claude、ChatGPT等AI应用连接
+- **MCP Server**: Built-in standardized MCP server supporting both stdio and SSE communication modes
+- **Standardized Interface**: Provides unified data access interface for all supported AI applications through MCP protocol
+- **Real-time Sync**: Data changes in the desktop application sync in real-time to MCP services, ensuring AI applications get the latest information
+- **Seamless Integration**: One-click MCP service startup with no additional configuration needed to connect with Claude, ChatGPT, and other AI applications
 
-这意味着你可以在UserBank桌面应用中管理数据，同时让所有AI助手通过MCP协议访问这些数据，实现真正的跨平台数据统一。
+This means you can manage data in the UserBank desktop application while allowing all AI assistants to access this data through the MCP protocol, achieving true cross-platform data unification.
 
-### 解决的问题
+### Problems Solved
 
-当你与不同AI助手（Claude、ChatGPT等）交互时，数据分散存储：
+When you interact with different AI assistants (Claude, ChatGPT, etc.), data is scattered across platforms:
 
 ```
-现状：数据分散 ❌
+Current State: Scattered Data ❌
 ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│   Claude    │  │   ChatGPT   │  │   其他AI    │
-│ 你的记忆A   │  │ 你的记忆B   │  │ 你的记忆C   │
-│ 你的偏好A   │  │ 你的偏好B   │  │ 你的偏好C   │
+│   Claude    │  │   ChatGPT   │  │  Other AI   │
+│ Your Memory A│  │ Your Memory B│  │ Your Memory C│
+│ Your Pref A  │  │ Your Pref B  │  │ Your Pref C  │
 └─────────────┘  └─────────────┘  └─────────────┘
 ```
 
-### UserBank解决方案
+### UserBank Solution
 
 ```
-UserBank：统一智能体验记录桌面应用 ✅
+UserBank: Unified Smart Experience Records Desktop App ✅
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Claude    │     │   ChatGPT   │     │   其他AI    │
+│   Claude    │     │   ChatGPT   │     │  Other AI   │
 └──────┬──────┘     └──────┬──────┘     └──────┬──────┘
        │                   │                   │
-       │      MCP协议      │      MCP协议      │
-       │      标准接口     │      标准接口     │
+       │   MCP Protocol    │   MCP Protocol    │
+       │ Standard Interface│ Standard Interface│
        └───────────────────┼───────────────────┘
                           │
                   ┌───────▼────────┐
                   │   UserBank     │
-                  │  桌面应用      │
+                  │ Desktop App    │
                   │ ┌─────────────┐ │
-                  │ │ 统一的记忆  │ │
-                  │ │ 完整的偏好  │ │
-                  │ │ 所有观点    │ │
-                  │ │ 目标计划    │ │
-                  │ │ 方法论等    │ │
+                  │ │ Unified     │ │
+                  │ │ Memories    │ │
+                  │ │ Complete    │ │
+                  │ │ Preferences │ │
+                  │ │ All Views   │ │
+                  │ │ Goals Plans │ │
+                  │ │ Methods etc │ │
                   │ └─────────────┘ │
                   └────────────────┘
 ```
 
-## ✨ 核心功能
+## ✨ Core Features
 
-### 🖥️ 现代化桌面体验
-- **Tauri 2.0驱动**：轻量级、高性能的跨平台桌面应用
-- **React + TypeScript**：现代化的用户界面，响应式设计
-- **原生性能**：接近原生应用的性能和体验
+### 🖥️ Modern Desktop Experience
+- **Tauri 2.0 Powered**: Lightweight, high-performance cross-platform desktop application
+- **React + TypeScript**: Modern user interface with responsive design
+- **Native Performance**: Near-native application performance and experience
 
-### 🔐 真正的数据主权
-- **本地存储**：你的数据存储在你控制的地方，不是平台的"寄存品"
-- **完整导出**：一键导出所有数据，包含元数据
-- **MCP集成**：内置UserBank Core，提供标准化的MCP接口
+### 🔐 True Data Sovereignty
+- **Local Storage**: Your data is stored where you control it, not as "deposits" on platforms
+- **Complete Export**: One-click export of all data including metadata
+- **MCP Integration**: Built-in UserBank Core providing standardized MCP interface
 
-### 🗃️ 9种数据类型管理
-- **👤 个人档案**: 基本信息和身份档案
-- **🧠 记忆管理**: AI交互记忆，支持6种类型分类
-- **💭 观点记录**: 个人观点和立场记录
-- **💡 深度洞察**: 洞察和感悟
-- **🎯 目标管理**: 支持长短期规划
-- **❤️ 个人偏好**: 偏好设置和管理
-- **🛠️ 方法论**: 个人方法论和最佳实践
-- **🔍 关注焦点**: 当前关注点和优先级管理
-- **🔮 预测记录**: 预测记录和验证追踪
+### 🗃️ 9 Data Type Management
+- **👤 Personal Profile**: Basic information and identity profile
+- **🧠 Memory Management**: AI interaction memories with 6 type classifications
+- **💭 Viewpoint Records**: Personal viewpoints and stance records
+- **💡 Deep Insights**: Insights and realizations
+- **🎯 Goal Management**: Support for long and short-term planning
+- **❤️ Personal Preferences**: Preference settings and management
+- **🛠️ Methodologies**: Personal methodologies and best practices
+- **🔍 Focus Areas**: Current focus points and priority management
+- **🔮 Prediction Records**: Prediction records and verification tracking
 
-### 🎨 优雅的用户界面
-- **现代化设计**：基于Radix UI和Tailwind CSS的精美界面
-- **深色/浅色主题**：支持主题切换
-- **响应式布局**：适配不同屏幕尺寸
-- **直观操作**：简洁易用的交互设计
+### 🎨 Elegant User Interface
+- **Modern Design**: Beautiful interface based on Radix UI and Tailwind CSS
+- **Dark/Light Themes**: Theme switching support
+- **Responsive Layout**: Adapts to different screen sizes
+- **Intuitive Operations**: Clean and easy-to-use interaction design
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 环境要求
+### Requirements
 
 - Node.js 18+
 - Rust 1.70+
-- 操作系统：Windows 10+、macOS 10.15+、Linux
+- Operating System: Windows 10+, macOS 10.15+, Linux
 
-### 安装步骤
+### Installation Steps
 
-1. **克隆项目**
+1. **Clone Project**
 ```bash
 git clone https://github.com/MixLabPro/userbank.git
 cd userbank
 ```
 
-2. **安装依赖**
+2. **Install Dependencies**
 ```bash
-# 安装前端依赖
+# Install frontend dependencies
 npm install
 
-# 安装Tauri CLI（如果未安装）
+# Install Tauri CLI (if not installed)
 npm install -g @tauri-apps/cli@next
 ```
 
-3. **开发模式运行**
+3. **Run in Development Mode**
 ```bash
-# 启动开发服务器
+# Start development server
 npm run tauri dev
 ```
 
-4. **构建应用**
+4. **Build Application**
 ```bash
-# 构建生产版本
+# Build production version
 npm run tauri build
 ```
 
-### 首次使用
+### First Use
 
-1. 启动应用后，首先设置你的个人档案
-2. 开始记录你的记忆、观点和目标
-3. 配置AI应用连接到UserBank的MCP服务
+1. After starting the application, first set up your personal profile
+2. Begin recording your memories, viewpoints, and goals
+3. Configure AI applications to connect to UserBank's MCP service
 
-## 📊 数据模型
+## 📊 Data Models
 
-### 👤 个人档案
-- 姓名、性别、性格描述
-- 个人简介和头像
-- 隐私级别控制
+### 👤 Personal Profile
+- Name, gender, personality description
+- Personal bio and avatar
+- Privacy level control
 
-### 🧠 记忆管理
-- **6种记忆类型**：经历、事件、学习、互动、成就、错误
-- **重要程度评级**：1-10级重要性标记
-- **关联信息**：相关人员、地点、时间
-- **标签系统**：关键词标签便于检索
+### 🧠 Memory Management
+- **6 Memory Types**: Experience, Event, Learning, Interaction, Achievement, Mistake
+- **Importance Rating**: 1-10 level importance marking
+- **Associated Information**: Related people, places, time
+- **Tag System**: Keyword tags for easy retrieval
 
-### 🎯 目标管理
-- **4种目标类型**：长期、短期、计划、待办
-- **状态追踪**：规划中、进行中、已完成、已放弃
-- **截止日期**：时间管理和提醒
+### 🎯 Goal Management
+- **4 Goal Types**: Long-term, Short-term, Plan, Todo
+- **Status Tracking**: Planning, In Progress, Completed, Abandoned
+- **Deadlines**: Time management and reminders
 
-## 🛠️ 使用指南
+## 🛠️ User Guide
 
-### 基本操作
+### Basic Operations
 
-#### 1. 添加记忆
-- 点击"新增记忆"按钮
-- 选择记忆类型和重要程度
-- 添加相关标签和描述
-- 保存记录
+#### 1. Adding Memories
+- Click "Add Memory" button
+- Select memory type and importance level
+- Add relevant tags and description
+- Save record
 
-#### 2. 管理目标
-- 在目标页面创建新目标
-- 设置目标类型和截止日期
-- 跟踪目标进度
-- 标记完成状态
+#### 2. Managing Goals
+- Create new goals in the Goals page
+- Set goal type and deadline
+- Track goal progress
+- Mark completion status
 
-#### 3. 记录观点
-- 在观点页面记录个人立场
-- 关联相关事件和人员
-- 添加参考链接
+#### 3. Recording Viewpoints
+- Record personal stances in the Viewpoints page
+- Associate with relevant events and people
+- Add reference links
 
-#### 4. 数据搜索
-- 使用全局搜索功能
-- 按类型、标签、时间筛选
-- 快速定位相关信息
+#### 4. Data Search
+- Use global search functionality
+- Filter by type, tags, time
+- Quickly locate relevant information
 
-## 🏗️ 开发指南
+## 🏗️ Development Guide
 
-### 项目结构
+### Project Structure
 ```
 userbank/
-├── src/                    # React前端源码
-│   ├── components/         # UI组件
-│   ├── pages/             # 页面组件
+├── src/                    # React frontend source code
+│   ├── components/         # UI components
+│   ├── pages/             # Page components
 │   ├── hooks/             # React Hooks
-│   ├── services/          # 服务层
-│   ├── types/             # TypeScript类型定义
-│   └── utils/             # 工具函数
-├── src-tauri/             # Tauri后端
-│   ├── src/               # Rust源码
-│   ├── icons/             # 应用图标
-│   ├── binaries/          # 外部二进制文件
-│   └── tauri.conf.json    # Tauri配置
-├── public/                # 静态资源
-└── package.json           # 项目配置
+│   ├── services/          # Service layer
+│   ├── types/             # TypeScript type definitions
+│   └── utils/             # Utility functions
+├── src-tauri/             # Tauri backend
+│   ├── src/               # Rust source code
+│   ├── icons/             # Application icons
+│   ├── binaries/          # External binaries
+│   └── tauri.conf.json    # Tauri configuration
+├── public/                # Static assets
+└── package.json           # Project configuration
 ```
 
-### 技术栈
+### Tech Stack
 
-**前端**
+**Frontend**
 - React 18 + TypeScript
 - Tailwind CSS + Radix UI
 - React Router + React Query
-- Vite构建工具
+- Vite build tool
 
-**后端**
+**Backend**
 - Tauri 2.0 (Rust)
-- 集成UserBank Core
-- SQLite数据库
+- Integrated UserBank Core
+- SQLite database
 
-### 开发命令
+### Development Commands
 
 ```bash
-# 开发模式
-npm run dev              # 启动前端开发服务器
-npm run tauri dev        # 启动Tauri开发模式
+# Development mode
+npm run dev              # Start frontend development server
+npm run tauri dev        # Start Tauri development mode
 
-# 构建
-npm run build            # 构建前端
-npm run tauri build      # 构建桌面应用
+# Build
+npm run build            # Build frontend
+npm run tauri build      # Build desktop application
 
-# 代码检查
-npm run lint             # ESLint检查
+# Code checking
+npm run lint             # ESLint check
 ```
 
-## 🤝 贡献指南
+## 🤝 Contributing Guide
 
-我们欢迎各种形式的贡献：
+We welcome all forms of contributions:
 
-1. **功能开发**: 添加新功能或改进现有功能
-2. **UI/UX改进**: 优化用户界面和体验
-3. **Bug修复**: 报告和修复问题
-4. **文档完善**: 改进文档和使用指南
-5. **测试用例**: 添加测试提高代码质量
+1. **Feature Development**: Add new features or improve existing ones
+2. **UI/UX Improvements**: Optimize user interface and experience
+3. **Bug Fixes**: Report and fix issues
+4. **Documentation**: Improve documentation and user guides
+5. **Test Cases**: Add tests to improve code quality
 
-### 开发环境设置
+### Development Environment Setup
 
 ```bash
-# 克隆项目
+# Clone project
 git clone https://github.com/MixLabPro/userbank.git
 cd userbank
 
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发环境
+# Start development environment
 npm run tauri dev
 ```
 
-## 📚 相关资源
+## 📚 Related Resources
 
-- **Tauri官方文档**: [https://tauri.app](https://tauri.app)
-- **React文档**: [https://reactjs.org](https://reactjs.org)
-- **MCP协议**: [https://modelcontextprotocol.io](https://modelcontextprotocol.io)
+- **Tauri Official Documentation**: [https://tauri.app](https://tauri.app)
+- **React Documentation**: [https://reactjs.org](https://reactjs.org)
+- **MCP Protocol**: [https://modelcontextprotocol.io](https://modelcontextprotocol.io)
 - **Radix UI**: [https://radix-ui.com](https://radix-ui.com)
 
-## 📜 许可证
+## 📜 License
 
-MIT License - 详见 [LICENSE](LICENSE) 文件
+MIT License - See [LICENSE](LICENSE) file for details
 
 ---
 
 <div align="center">
   
-**让AI真正了解你，从拥有自己的数据开始**
+**Let AI truly understand you, starting with owning your own data**
 
-*UserBank - 你的个人数据银行桌面应用*
+*UserBank - Your Personal Data Bank Desktop Application*
 
 [GitHub](https://github.com/MixLabPro/userbank) • [Issues](https://github.com/MixLabPro/userbank/issues) • [Discussions](https://github.com/MixLabPro/userbank/discussions)
 
