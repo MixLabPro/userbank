@@ -40,7 +40,6 @@ const Index = () => {
     loading: sqlLoading, 
     error: sqlError, 
     refreshData: refreshSQLData,
-    executeSQL,
     updateRecord,
     deleteRecord
   } = useProfileSQL();

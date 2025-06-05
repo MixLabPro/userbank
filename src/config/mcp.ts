@@ -1,4 +1,4 @@
-import { MCPSettings } from '@/types';
+import { MCPSettings } from '../types';
 
 // MCP 服务器配置
 export const MCP_CONFIG: MCPSettings = {

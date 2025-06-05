@@ -1,8 +1,7 @@
 import {
-  prepareTools,
-  callOpenAIFunctionAndProcessToolCalls
+  prepareTools
 } from 'mcp-uiux/dist/MCPClient.js'
-import { MCPSettings, ProfileData, TableStats, ProfileRecord, Persona, SQLResult, QueryParams } from '@/types'
+import { MCPSettings, ProfileData, TableStats, ProfileRecord, Persona, SQLResult, QueryParams } from '../types'
 import { 
   TABLE_TO_TOOL_MAP, 
   TABLE_DESCRIPTIONS, 
@@ -11,7 +10,7 @@ import {
   isValidTableName,
   buildQueryParams,
   buildSaveParams
-} from '@/utils/tableMapping'
+} from '../utils/tableMapping'
 
 export const getDefaultMcpSettings = (): MCPSettings => {
   return {
@@ -103,8 +102,8 @@ const callMCPTool = async (
         connection = await prepareTools(url)
       }
 
-      const { mcpClient, tools } = connection
-      const tool = tools.find(t => t.name === toolName)
+      const { mcpClient, tools } = connection as any
+      const tool = tools.find((t: any) => t.name === toolName)
       if (!tool) {
         throw new Error(`工具不存在: ${toolName}`)
       }
@@ -239,7 +238,7 @@ export const getAllTableContents = async (settings?: MCPSettings): Promise<Profi
     
     // 初始化数据结构
     const profileData: ProfileData = {
-      persona: null,
+      persona: undefined,
       viewpoint: { description: getTableDescription('viewpoint'), records: [], stats: { total_records: 0 } },
       insight: { description: getTableDescription('insight'), records: [], stats: { total_records: 0 } },
       focus: { description: getTableDescription('focus'), records: [], stats: { total_records: 0 } },
@@ -254,7 +253,7 @@ export const getAllTableContents = async (settings?: MCPSettings): Promise<Profi
       // 先获取用户画像
       console.log('获取用户画像...')
       const personaResult = await getPersona(settings)
-      profileData.persona = personaResult
+      profileData.persona = personaResult as Persona
       console.log('用户画像获取完成:', personaResult ? '成功' : '失败')
       
       // 分批并行获取表数据，每批4个表

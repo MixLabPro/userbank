@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ProfileData, MCPSettings } from '@/types';
-import { getAllTableContents } from '@/services/MCP';
-import { MCP_CONFIG } from '@/config/mcp';
+import { ProfileData, MCPSettings } from '../types';
+import { getAllTableContents } from '../services/MCP';
+import { MCP_CONFIG } from '../config/mcp';
 
 export const useProfile = (settings?: MCPSettings) => {
   const [data, setData] = useState<ProfileData | null>(null);
