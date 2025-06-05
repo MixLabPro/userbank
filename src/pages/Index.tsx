@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
+import { useSidecar } from '../hooks/useSidecar';
 import { 
   TABLE_DESCRIPTIONS, 
   formatTime, 
   getTagColor, 
-  getTableColor, 
   filterRecords, 
   getAllTags,
   createEmptyProfileData 
@@ -27,6 +27,9 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [deletingRecord, setDeletingRecord] = useState<any>(null);
   const [deletedRecords, setDeletedRecords] = useState<Set<string>>(new Set());
+  
+  // 启动 sidecar 服务
+  const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
   
   // 使用 MCP 服务获取数据
   const { data: profileData, loading, error, refreshData } = useProfile();
@@ -77,11 +80,11 @@ const Index = () => {
   const currentTableData = useMemo(() => {
     if (activeTable === 'all') {
       // 如果选择了"全部"，合并所有表格的记录
-      const allRecords = [];
+      const allRecords: any[] = [];
       Object.entries(TABLE_DESCRIPTIONS).forEach(([tableKey, tableName]) => {
         const tableInfo = tableData[tableKey as keyof typeof tableData];
         if (tableInfo && typeof tableInfo === 'object' && 'records' in tableInfo) {
-          tableInfo.records.forEach((record) => {
+          tableInfo.records.forEach((record: any) => {
             allRecords.push({
               ...record,
               uniqueKey: `${tableKey}-${record.id}`,
@@ -210,13 +213,20 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-6 tracking-tight">
-                  Profile
+                  UserBank
                   <span className="block text-2xl md:text-3xl lg:text-4xl font-thin text-gray-600 mt-2">
                     数据管理面板
                   </span>
                 </h1>
               </div>
               <div className="flex items-center gap-4">
+                {/* Sidecar 状态指示器 */}
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${sidecarError ? 'bg-red-500' : sidecarRunning ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <span className="text-sm text-gray-500">
+                    {sidecarError ? 'Sidecar 错误' : sidecarRunning ? 'Sidecar 运行中' : 'Sidecar 启动中'}
+                  </span>
+                </div>
                 {/* 连接状态指示器 */}
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${currentStatus.error ? 'bg-red-500' : currentStatus.hasData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
@@ -411,7 +421,7 @@ const Index = () => {
                         {record.keywords && record.keywords.length > 0 && (
                           <div className="mb-6">
                             <div className="flex flex-wrap gap-3">
-                              {record.keywords.map((tag, tagIndex) => (
+                              {record.keywords.map((tag: string, tagIndex: number) => (
                                 <span
                                   key={`${record.uniqueKey || record.id}-tag-${tagIndex}-${tag}`}
                                   className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 ${getTagColor(tag)}`}
@@ -536,7 +546,7 @@ const Index = () => {
                       </p>
                       {deletingRecord.keywords && deletingRecord.keywords.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-3">
-                          {deletingRecord.keywords.slice(0, 3).map((tag, index) => (
+                          {deletingRecord.keywords.slice(0, 3).map((tag: string, index: number) => (
                             <span
                               key={index}
                               className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-200 text-gray-600"
