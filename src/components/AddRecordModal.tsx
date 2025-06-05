@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Plus, Tag } from 'lucide-react';
-import { addRecord } from '@/services/MCP';
+import { addRecord } from '../services/MCP';
 
 interface AddRecordModalProps {
   isOpen: boolean;

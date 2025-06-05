@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ProfileData, MCPSettings, SQLResult, QueryParams } from '@/types';
-import { executeCustomSQL, queryRecords, saveRecord } from '@/services/MCP';
-import { MCP_CONFIG } from '@/config/mcp';
+import { ProfileData, MCPSettings,  QueryParams } from '../types';
+import { executeCustomSQL, queryRecords, saveRecord } from '../services/MCP';
+import { MCP_CONFIG } from '../config/mcp';
 
 export const useProfileSQL = (settings?: MCPSettings) => {
   const [data, setData] = useState<ProfileData | null>(null);
@@ -280,9 +280,14 @@ export const useProfileSQL = (settings?: MCPSettings) => {
       const sql = `SELECT * FROM ${tableName} WHERE id = ?`;
       const result = await executeCustomSQL(sql, [recordId.toString()], true, mcpSettings);
       
-      if (result && result.success && (result.results || result.data) && (result.results || result.data).length > 0) {
-        return (result.results || result.data)[0];
-      } else {
+      if (result && result.success) {
+        const data = result.results || result.data;
+        if (data && data.length > 0) {
+          return data[0];
+        }
+      }
+      
+      {
         setError(result?.message || '获取记录失败');
         return null;
       }

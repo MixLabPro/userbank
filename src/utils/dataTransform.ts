@@ -1,4 +1,4 @@
-import { ProfileData, ProfileRecord, TableData, ExtendedRecord } from '@/types';
+import { ProfileData, ProfileRecord, TableData, ExtendedRecord } from '../types';
 import { TABLE_DESCRIPTIONS, getTableDescription } from './tableMapping';
 
 // 处理记录中的JSON字段
@@ -149,8 +149,8 @@ export const getAllTags = (profileData: ProfileData): string[] => {
   
   Object.values(profileData).forEach(tableData => {
     if (tableData && typeof tableData === 'object' && 'records' in tableData) {
-      tableData.records.forEach(record => {
-        record.keywords?.forEach(keyword => tags.add(keyword));
+      tableData.records.forEach((record: any) => {
+        record.keywords?.forEach((keyword: any) => tags.add(keyword));
       });
     }
   });

@@ -9,7 +9,7 @@ import {
   getPersona, 
   executeCustomSQL,
   getTableSchema 
-} from '@/services/MCP';
+} from '../services/MCP';
 import { 
   TABLE_TO_TOOL_MAP, 
   isValidTableName, 
