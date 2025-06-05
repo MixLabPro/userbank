@@ -1,0 +1,88 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-gray-300;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-light;
+  }
+}
+
+@layer components {
+  /* 未来感科技风格组件样式 */
+  .card-shadow {
+    @apply shadow-[0_4px_20px_0_rgba(0,0,0,0.05),0_2px_8px_0_rgba(0,0,0,0.02)];
+  }
+  
+  .card-shadow-hover {
+    @apply hover:shadow-[0_8px_30px_0_rgba(0,0,0,0.08),0_4px_16px_0_rgba(0,0,0,0.04)];
+  }
+  
+  .border-subtle {
+    @apply border-gray-100;
+  }
+  
+  .text-primary {
+    @apply text-gray-900;
+  }
+  
+  .text-secondary {
+    @apply text-gray-600;
+  }
+  
+  .text-muted {
+    @apply text-gray-400;
+  }
+  
+  .bg-surface {
+    @apply bg-gray-50;
+  }
+  
+  .bg-card {
+    @apply bg-white;
+  }
+  
+  .accent-black {
+    @apply bg-gray-900 text-white hover:bg-black shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  .accent-gray {
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 transition-all duration-200;
+  }
+
+  /* 科技感渐变背景 */
+  .tech-gradient {
+    @apply bg-gradient-to-br from-gray-50 via-white to-gray-100;
+  }
+
+  /* 悬浮效果 */
+  .hover-lift {
+    @apply transition-all duration-300 hover:transform hover:scale-105 hover:shadow-xl;
+  }
+
+  /* 玻璃态效果 */
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+}
+
+@layer utilities {
+  /* 自定义阴影 */
+  .shadow-3xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 渐变文字效果 */
+  .text-gradient {
+    @apply bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent;
+  }
+}
