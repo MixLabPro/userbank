@@ -36,5 +36,18 @@
       "binaries/UserBank_SSE_Core",
       "binaries/UserBank_Stdio_Core"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/MixLabPro/userbank/releases/latest/download/update.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENGOTYxM0Q1OTg1MUQ1RDUKUldUVjFWR1kxUk9XenczUnMvMTJsR1JnMmxlQjVkSmhTWE5HNk8rUUc3V0VRSWtwQnJyTzVDQ0QK",
+      "windows":{
+        "installMode": "passive"
+      }
+    }
   }
 }
