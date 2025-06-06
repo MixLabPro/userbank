@@ -219,19 +219,26 @@ const Index = () => {
                 </h1>
               </div>
               <div className="flex items-center gap-4">
-                {/* Sidecar 状态指示器 */}
+                {/* 统一状态指示器 - 优先显示 Sidecar 状态，成功时显示 MCP 状态 */}
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${sidecarError ? 'bg-red-500' : sidecarRunning ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <span className="text-sm text-gray-500">
-                    {sidecarError ? 'Sidecar 错误' : sidecarRunning ? 'Sidecar 运行中' : 'Sidecar 启动中'}
-                  </span>
-                </div>
-                {/* 连接状态指示器 */}
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${currentStatus.error ? 'bg-red-500' : currentStatus.hasData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <span className="text-sm text-gray-500">
-                    {currentStatus.statusText}
-                  </span>
+                  {sidecarError ? (
+                    <>
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="text-sm text-gray-500">Sidecar 错误</span>
+                    </>
+                  ) : !sidecarRunning ? (
+                    <>
+                      <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                      <span className="text-sm text-gray-500">Sidecar 启动中</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className={`w-3 h-3 rounded-full ${currentStatus.error ? 'bg-red-500' : currentStatus.hasData ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                      <span className="text-sm text-gray-500">
+                        {currentStatus.statusText}
+                      </span>
+                    </>
+                  )}
                 </div>
                 {/* 刷新按钮 */}
                 <button
