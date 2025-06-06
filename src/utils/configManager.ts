@@ -205,7 +205,6 @@ export const writeClaudeConfig = async (config: MCPServersConfig): Promise<void>
         }
         
         // 插入或替换 userbank 配置
-        existingConfig.mcpServers['userbank-sse'] = config.mcpServers['userbank-sse'];
         existingConfig.mcpServers['userbank-stdio'] = config.mcpServers['userbank-stdio'];
         
         // 写入更新后的配置
