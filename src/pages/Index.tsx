@@ -37,35 +37,36 @@ const Index = () => {
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
 
-  // 获取资源目录路径和配置文件
-  useEffect(() => {
-    const getResourceDirAndConfig = async () => {
-      try {
-        const path = await resourceDir();
-        setResourceDirPath(path);
-        
-        // 读取配置文件
-        const configPath = await join(path, 'config.json');
-        const configExists = await exists(configPath);
+  // 获取资源目录路径和配置文件的函数
+  const getResourceDirAndConfig = async () => {
+    try {
+      const path = await resourceDir();
+      setResourceDirPath(path);
+      
+      // 读取配置文件
+      const configPath = await join(path, 'config.json');
+      const configExists = await exists(configPath);
 
-        console.log("configPath", configPath);
-        
-        if (configExists) {
-          const configContent = await readTextFile(configPath);
-          const parsedConfig = JSON.parse(configContent);
-          console.log("parsedConfig", parsedConfig);
-          setConfigData(parsedConfig);
-          setConfigError('');
-        } else {
-          setConfigError('配置文件不存在');
-        }
-      } catch (error) {
-        console.error('获取资源目录路径或读取配置文件失败:', error);
-        setResourceDirPath('获取路径失败');
-        setConfigError(`读取配置文件失败: ${error}`);
+      console.log("configPath", configPath);
+      
+      if (configExists) {
+        const configContent = await readTextFile(configPath);
+        const parsedConfig = JSON.parse(configContent);
+        console.log("parsedConfig", parsedConfig);
+        setConfigData(parsedConfig);
+        setConfigError('');
+      } else {
+        setConfigError('配置文件不存在');
       }
-    };
-    
+    } catch (error) {
+      console.error('获取资源目录路径或读取配置文件失败:', error);
+      setResourceDirPath('获取路径失败');
+      setConfigError(`读取配置文件失败: ${error}`);
+    }
+  };
+
+  // 初始化时获取资源目录路径和配置文件
+  useEffect(() => {
     getResourceDirAndConfig();
   }, []);
   
@@ -289,7 +290,13 @@ const Index = () => {
                 {/* 设置按钮 */}
                 <div className="relative">
                   <button
-                    onClick={() => setShowSettings(!showSettings)}
+                    onClick={() => {
+                      setShowSettings(!showSettings);
+                      // 重新获取配置文件数据
+                      if (!showSettings) {
+                        getResourceDirAndConfig();
+                      }
+                    }}
                     className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
                   >
                     <Settings className="w-5 h-5" />
