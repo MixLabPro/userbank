@@ -4,7 +4,6 @@ import {
 import { MCPSettings, ProfileData, TableStats, ProfileRecord, Persona, SQLResult, QueryParams } from '../types'
 import { 
   TABLE_TO_TOOL_MAP, 
-  TABLE_DESCRIPTIONS, 
   getToolName, 
   getTableDescription, 
   isValidTableName,
@@ -12,6 +11,9 @@ import {
   buildSaveParams
 } from '../utils/tableMapping'
 import { getResourceDirAndConfig, getMCPUrl, ConfigData } from '../utils/configManager'
+
+// 表名列表（用于替代TABLE_DESCRIPTIONS）
+const TABLE_NAMES = Object.keys(TABLE_TO_TOOL_MAP)
 
 // 缓存配置数据
 let cachedConfigData: ConfigData | null = null
@@ -252,17 +254,17 @@ export const getAllTableContents = async (settings?: MCPSettings): Promise<Profi
     // 使用映射中定义的表名
     const tableNames = Object.keys(TABLE_TO_TOOL_MAP)
     
-    // 初始化数据结构
+    // 初始化数据结构 - 需要翻译函数，这里使用空字符串作为占位符
     const profileData: ProfileData = {
       persona: undefined,
-      viewpoint: { description: getTableDescription('viewpoint'), records: [], stats: { total_records: 0 } },
-      insight: { description: getTableDescription('insight'), records: [], stats: { total_records: 0 } },
-      focus: { description: getTableDescription('focus'), records: [], stats: { total_records: 0 } },
-      goal: { description: getTableDescription('goal'), records: [], stats: { total_records: 0 } },
-      preference: { description: getTableDescription('preference'), records: [], stats: { total_records: 0 } },
-      methodology: { description: getTableDescription('methodology'), records: [], stats: { total_records: 0 } },
-      prediction: { description: getTableDescription('prediction'), records: [], stats: { total_records: 0 } },
-      memory: { description: getTableDescription('memory'), records: [], stats: { total_records: 0 } }
+      viewpoint: { description: '', records: [], stats: { total_records: 0 } },
+      insight: { description: '', records: [], stats: { total_records: 0 } },
+      focus: { description: '', records: [], stats: { total_records: 0 } },
+      goal: { description: '', records: [], stats: { total_records: 0 } },
+      preference: { description: '', records: [], stats: { total_records: 0 } },
+      methodology: { description: '', records: [], stats: { total_records: 0 } },
+      prediction: { description: '', records: [], stats: { total_records: 0 } },
+      memory: { description: '', records: [], stats: { total_records: 0 } }
     }
     
     try {
@@ -348,12 +350,12 @@ export const getTableStats = async (settings?: MCPSettings): Promise<TableStats[
     
     const stats: TableStats[] = []
     
-    Object.entries(TABLE_DESCRIPTIONS).forEach(([tableName, description]) => {
+    TABLE_NAMES.forEach((tableName) => {
       const tableData = profileData[tableName as keyof ProfileData] as any
       if (tableData && typeof tableData === 'object' && 'stats' in tableData) {
         stats.push({
           table_name: tableName,
-          description,
+          description: tableName, // 使用表名作为描述
           total_records: tableData.stats.total_records
         })
       }

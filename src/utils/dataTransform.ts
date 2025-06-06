@@ -1,5 +1,5 @@
 import { ProfileData, ProfileRecord, TableData, ExtendedRecord } from '../types';
-import { TABLE_DESCRIPTIONS, getTableDescription } from './tableMapping';
+import { TABLE_TO_TOOL_MAP } from './tableMapping';
 
 // 处理记录中的JSON字段
 export const processRecordFields = (record: any): ProfileRecord => {
@@ -35,17 +35,21 @@ export const createEmptyTableData = (description: string): TableData => ({
   }
 });
 
-// 创建空的ProfileData结构
-export const createEmptyProfileData = (): ProfileData => ({
-  viewpoint: createEmptyTableData(getTableDescription('viewpoint')),
-  insight: createEmptyTableData(getTableDescription('insight')),
-  focus: createEmptyTableData(getTableDescription('focus')),
-  goal: createEmptyTableData(getTableDescription('goal')),
-  preference: createEmptyTableData(getTableDescription('preference')),
-  methodology: createEmptyTableData(getTableDescription('methodology')),
-  prediction: createEmptyTableData(getTableDescription('prediction')),
-  memory: createEmptyTableData(getTableDescription('memory'))
-});
+// 创建空的ProfileData结构（需要翻译函数）
+export const createEmptyProfileData = (getDescription?: (tableName: string) => string): ProfileData => {
+  const getDesc = getDescription || ((name: string) => name);
+  
+  return {
+    viewpoint: createEmptyTableData(getDesc('viewpoint')),
+    insight: createEmptyTableData(getDesc('insight')),
+    focus: createEmptyTableData(getDesc('focus')),
+    goal: createEmptyTableData(getDesc('goal')),
+    preference: createEmptyTableData(getDesc('preference')),
+    methodology: createEmptyTableData(getDesc('methodology')),
+    prediction: createEmptyTableData(getDesc('prediction')),
+    memory: createEmptyTableData(getDesc('memory'))
+  };
+};
 
 // 验证记录数据的完整性
 export const validateRecord = (record: any): boolean => {
@@ -109,7 +113,7 @@ export const getTableColor = (tableKey: string): string => {
     'bg-gradient-to-r from-red-500 to-red-600 text-white',
   ];
   
-  const tableKeys = Object.keys(TABLE_DESCRIPTIONS);
+  const tableKeys = Object.keys(TABLE_TO_TOOL_MAP);
   const index = tableKeys.indexOf(tableKey);
   return colors[index % colors.length];
 };
@@ -156,7 +160,4 @@ export const getAllTags = (profileData: ProfileData): string[] => {
   });
   
   return Array.from(tags).sort();
-};
-
-// 重新导出TABLE_DESCRIPTIONS以保持向后兼容
-export { TABLE_DESCRIPTIONS }; 
+}; 

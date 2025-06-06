@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Save, Tag, Plus } from 'lucide-react';
 
 interface EditRecordModalProps {
@@ -26,6 +27,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
   tableDescription,
   onUpdate
 }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
@@ -109,7 +111,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h2 className="text-2xl font-light text-gray-900">编辑记录</h2>
+            <h2 className="text-2xl font-light text-gray-900">{t('modal.editRecord')}</h2>
             <p className="text-gray-500 mt-1">
               {record.sourceTableName || tableDescription} - ID: {record.id}
             </p>
@@ -127,12 +129,12 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
           {/* 内容输入 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              记录内容 *
+              {t('modal.contentRequired')} *
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder={`请输入${record.sourceTableName || tableDescription}内容...`}
+              placeholder={t('modal.contentPlaceholder', { table: record.sourceTableName || tableDescription })}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-200 resize-none"
               rows={6}
               required
@@ -142,7 +144,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
           {/* 标签管理 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              相关标签
+              {t('modal.tags')}
             </label>
             
             {/* 现有标签 */}
@@ -174,7 +176,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="输入新标签..."
+                placeholder={t('modal.newTagPlaceholder')}
                 className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-200"
               />
               <button
@@ -184,7 +186,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                添加
+                {t('modal.addTag')}
               </button>
             </div>
           </div>
@@ -196,7 +198,7 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               onClick={handleClose}
               className="flex-1 px-6 py-3 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -206,12 +208,12 @@ const EditRecordModal: React.FC<EditRecordModalProps> = ({
               {isSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  保存中...
+                  {t('modal.saving')}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  保存更改
+                  {t('modal.saveChanges')}
                 </>
               )}
             </button>

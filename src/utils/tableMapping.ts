@@ -15,18 +15,6 @@ export const TABLE_TO_TOOL_MAP: { [key: string]: string } = {
   'prediction': 'manage_predictions'
 }
 
-// 表名到中文描述的映射
-export const TABLE_DESCRIPTIONS: { [key: string]: string } = {
-  'viewpoint': '观点',
-  'insight': '洞察',
-  'focus': '关注点',
-  'goal': '目标',
-  'preference': '偏好',
-  'methodology': '方法论',
-  'prediction': '预测',
-  'memory': '记忆'
-}
-
 // 每个表的特定字段映射
 export const TABLE_FIELD_MAPPING: { [key: string]: { [key: string]: string } } = {
   memory: {
@@ -102,9 +90,30 @@ export const getToolName = (tableName: string): string | null => {
   return TABLE_TO_TOOL_MAP[tableName] || null
 }
 
-// 获取表描述
-export const getTableDescription = (tableName: string): string => {
-  return TABLE_DESCRIPTIONS[tableName] || '未知表格'
+// 获取表描述（完全依赖国际化）
+export const getTableDescription = (tableName: string, t: (key: string) => string): string => {
+  const translationKey = `tables.descriptions.${tableName}`;
+  const translation = t(translationKey);
+  
+  // 如果翻译键和翻译结果相同，说明没有找到翻译
+  if (translation === translationKey) {
+    return t('common.unknownTable');
+  }
+  
+  return translation;
+}
+
+// 获取表名称（完全依赖国际化）
+export const getTableName = (tableName: string, t: (key: string) => string): string => {
+  const translationKey = `tables.names.${tableName}`;
+  const translation = t(translationKey);
+  
+  // 如果翻译键和翻译结果相同，说明没有找到翻译
+  if (translation === translationKey) {
+    return t('common.unknownTable');
+  }
+  
+  return translation;
 }
 
 // 构建查询参数

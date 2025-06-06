@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Plus, Tag } from 'lucide-react';
 import { addRecord } from '../services/MCP';
 
@@ -17,6 +18,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
   activeTable,
   tableDescription
 }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,11 +46,11 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
         onSuccess();
         onClose();
       } else {
-        alert('添加记录失败，请重试');
+        alert(t('toast.addRecordFailed'));
       }
     } catch (error) {
       console.error('添加记录失败:', error);
-      alert('添加记录失败，请重试');
+      alert(t('toast.addRecordFailed'));
     } finally {
       setLoading(false);
     }
@@ -62,8 +64,8 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h2 className="text-2xl font-light text-gray-900">添加新记录</h2>
-            <p className="text-gray-500 mt-1">向 {tableDescription} 表格添加新内容</p>
+            <h2 className="text-2xl font-light text-gray-900">{t('modal.addRecord')}</h2>
+            <p className="text-gray-500 mt-1">{t('modal.addToTable', { table: tableDescription })}</p>
           </div>
           <button
             onClick={onClose}
@@ -79,12 +81,12 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
             {/* 内容输入 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                内容 *
+                {t('modal.content')} *
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder={`请输入${tableDescription}内容...`}
+                placeholder={t('modal.contentPlaceholder', { table: tableDescription })}
                 rows={6}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-200 resize-none"
                 required
@@ -95,17 +97,17 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <Tag className="w-4 h-4 inline mr-2" />
-                相关标签 (可选)
+                {t('modal.tagsOptional')}
               </label>
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="用逗号分隔多个标签，例如：AI, 技术, 思考"
+                placeholder={t('modal.tagsPlaceholder')}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all duration-200"
               />
               <p className="text-xs text-gray-500 mt-2">
-                标签用于分类和搜索，建议使用简洁的关键词
+                {t('modal.tagsHelp')}
               </p>
             </div>
           </div>
@@ -117,7 +119,7 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
               onClick={onClose}
               className="px-6 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -127,12 +129,12 @@ const AddRecordModal: React.FC<AddRecordModalProps> = ({
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  添加中...
+                  {t('modal.adding')}
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4" />
-                  添加记录
+                  {t('modal.addRecord')}
                 </>
               )}
             </button>

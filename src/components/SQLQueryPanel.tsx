@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Play, Database, Code, Copy, Download, AlertCircle, CheckCircle } from 'lucide-react';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 
@@ -7,6 +8,7 @@ interface SQLQueryPanelProps {
 }
 
 const SQLQueryPanel: React.FC<SQLQueryPanelProps> = ({ onDataUpdate }) => {
+  const { t } = useTranslation();
   const [sqlQuery, setSqlQuery] = useState('');
   const [queryResult, setQueryResult] = useState<any>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -15,7 +17,7 @@ const SQLQueryPanel: React.FC<SQLQueryPanelProps> = ({ onDataUpdate }) => {
   // 预设的SQL查询示例（更新为新的表结构）
   const presetQueries = [
     {
-      name: '获取所有表数据',
+      name: t('sql.presets.getAllTables'),
       sql: `SELECT 
   'viewpoint' as table_name, id, content, keywords, created_time, updated_time FROM viewpoint
 UNION ALL
@@ -42,7 +44,7 @@ SELECT
 ORDER BY table_name, created_time DESC`
     },
     {
-      name: '获取表统计信息',
+      name: t('sql.presets.getTableStats'),
       sql: `SELECT 
   'viewpoint' as table_name, '观点' as description, COUNT(*) as total_records FROM viewpoint
 UNION ALL
@@ -68,7 +70,7 @@ SELECT
   'memory' as table_name, '记忆' as description, COUNT(*) as total_records FROM memory`
     },
     {
-      name: '获取最近7天的记录',
+      name: t('sql.presets.getRecentRecords'),
       sql: `SELECT 
   'viewpoint' as table_name, id, content, keywords, created_time, updated_time 
 FROM viewpoint 
@@ -111,7 +113,7 @@ WHERE created_time >= datetime('now', '-7 days')
 ORDER BY created_time DESC LIMIT 10`
     },
     {
-      name: '搜索包含特定关键词的记录',
+      name: t('sql.presets.searchKeywords'),
       sql: `SELECT 
   'insight' as table_name, id, content, keywords, created_time, updated_time 
 FROM insight 
@@ -119,18 +121,18 @@ WHERE content LIKE '%AI%' OR keywords LIKE '%AI%'
 ORDER BY created_time DESC LIMIT 20`
     },
     {
-      name: '获取用户画像信息',
+      name: t('sql.presets.getUserProfile'),
       sql: `SELECT * FROM persona WHERE id = 1`
     },
     {
-      name: '获取分类体系',
+      name: t('sql.presets.getCategories'),
       sql: `SELECT * FROM category WHERE is_active = 1 ORDER BY first_level, second_level`
     }
   ];
 
   const executeQuery = async () => {
     if (!sqlQuery.trim()) {
-      alert('请输入SQL查询语句');
+      alert(t('sql.enterQuery'));
       return;
     }
 
@@ -171,16 +173,16 @@ ORDER BY created_time DESC LIMIT 20`
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <Database className="w-6 h-6 text-gray-900" />
-          <h2 className="text-2xl font-light text-gray-900">SQL 查询面板</h2>
+          <h2 className="text-2xl font-light text-gray-900">{t('sql.title')}</h2>
         </div>
         <p className="text-gray-500 font-light">
-          直接执行SQL查询来获取和分析数据，支持所有SQLite语法
+          {t('sql.description')}
         </p>
       </div>
 
       {/* 预设查询 */}
       <div className="mb-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">预设查询</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('sql.presetQueries')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {presetQueries.map((query, index) => (
             <button
@@ -203,19 +205,19 @@ ORDER BY created_time DESC LIMIT 20`
       {/* SQL输入区域 */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-medium text-gray-900">SQL 查询语句</label>
+          <label className="text-sm font-medium text-gray-900">{t('sql.queryStatement')}</label>
           <button
             onClick={() => copyToClipboard(sqlQuery)}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
           >
             <Copy className="w-4 h-4" />
-            复制
+            {t('common.copy')}
           </button>
         </div>
         <textarea
           value={sqlQuery}
           onChange={(e) => setSqlQuery(e.target.value)}
-          placeholder="输入您的SQL查询语句..."
+          placeholder={t('sql.queryPlaceholder')}
           className="w-full h-32 p-4 bg-gray-50 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-900/10 focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400 font-mono text-sm"
         />
       </div>
@@ -228,7 +230,7 @@ ORDER BY created_time DESC LIMIT 20`
           className="flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-black text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Play className={`w-5 h-5 ${isExecuting ? 'animate-spin' : ''}`} />
-          {isExecuting ? '执行中...' : '执行查询'}
+          {isExecuting ? t('common.executing') : t('sql.executeQuery')}
         </button>
         
         {queryResult && (
@@ -237,7 +239,7 @@ ORDER BY created_time DESC LIMIT 20`
             className="flex items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
           >
             <Download className="w-5 h-5" />
-            下载结果
+            {t('sql.downloadResult')}
           </button>
         )}
       </div>
@@ -251,7 +253,7 @@ ORDER BY created_time DESC LIMIT 20`
             ) : (
               <AlertCircle className="w-5 h-5 text-red-600" />
             )}
-            <h3 className="text-lg font-medium text-gray-900">查询结果</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('sql.queryResult')}</h3>
           </div>
 
           {queryResult.success ? (
@@ -259,7 +261,7 @@ ORDER BY created_time DESC LIMIT 20`
               {queryResult.data && queryResult.data.length > 0 ? (
                 <div className="bg-gray-50 rounded-xl p-4 overflow-auto">
                   <div className="text-sm text-gray-600 mb-3">
-                    共 {queryResult.data.length} 条记录
+                    {t('common.records', { count: queryResult.data.length })}
                   </div>
                   <pre className="text-sm text-gray-900 font-mono whitespace-pre-wrap">
                     {JSON.stringify(queryResult.data, null, 2)}
@@ -267,10 +269,10 @@ ORDER BY created_time DESC LIMIT 20`
                 </div>
               ) : (
                 <div className="bg-gray-50 rounded-xl p-8 text-center">
-                  <p className="text-gray-500">查询执行成功，但没有返回数据</p>
+                  <p className="text-gray-500">{t('sql.noDataReturned')}</p>
                   {queryResult.rowcount !== undefined && (
                     <p className="text-sm text-gray-400 mt-2">
-                      影响行数: {queryResult.rowcount}
+                      {t('common.affectedRows')}: {queryResult.rowcount}
                     </p>
                   )}
                 </div>
@@ -278,7 +280,7 @@ ORDER BY created_time DESC LIMIT 20`
             </div>
           ) : (
             <div className="bg-red-50 rounded-xl p-4">
-              <p className="text-red-800 font-medium">查询执行失败</p>
+              <p className="text-red-800 font-medium">{t('sql.queryFailed')}</p>
               <p className="text-red-600 text-sm mt-1">{queryResult.message}</p>
             </div>
           )}

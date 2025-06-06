@@ -1,10 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 import { useSidecar } from '../hooks/useSidecar';
 import { 
-  TABLE_DESCRIPTIONS, 
+  TABLE_TO_TOOL_MAP,
+  getTableName,
+  getTableDescription
+} from '../utils/tableMapping';
+import { 
   formatTime, 
   getTagColor, 
   filterRecords, 
@@ -14,11 +19,13 @@ import {
 import AddRecordModal from '../components/AddRecordModal';
 import EditRecordModal from '../components/EditRecordModal';
 import SQLQueryPanel from '../components/SQLQueryPanel';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import { getResourceDirAndConfig, buildMCPServersConfig, MCPServersConfig, writeCursorConfig, writeClaudeConfig } from '../utils/configManager';
 
 type ViewMode = 'table' | 'sql';
 
 const Index = () => {
+  const { t } = useTranslation();
   const [activeTable, setActiveTable] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
@@ -76,12 +83,12 @@ const Index = () => {
     if (viewMode === 'sql' && sqlData) {
       return sqlData;
     }
-    return profileData || createEmptyProfileData();
-  }, [viewMode, sqlData, profileData]);
+    return profileData || createEmptyProfileData((tableName: string) => getTableDescription(tableName, t));
+  }, [viewMode, sqlData, profileData, t]);
 
   // 获取所有表格名称和统计信息
   const tableStats = useMemo(() => {
-    const stats = Object.entries(TABLE_DESCRIPTIONS).map(([key, description]) => {
+    const stats = Object.keys(TABLE_TO_TOOL_MAP).map((key) => {
       const tableInfo = tableData[key as keyof typeof tableData];
       const count = tableInfo && typeof tableInfo === 'object' && 'stats' in tableInfo 
         ? tableInfo.stats.total_records 
@@ -89,7 +96,7 @@ const Index = () => {
       
       return {
         key,
-        name: description,
+        name: getTableName(key, t),
         count
       };
     });
@@ -97,17 +104,17 @@ const Index = () => {
     // 添加"全部"选项
     const totalCount = stats.reduce((sum, stat) => sum + stat.count, 0);
     return [
-      { key: 'all', name: '全部', count: totalCount },
+      { key: 'all', name: t('common.all'), count: totalCount },
       ...stats
     ];
-  }, [tableData]);
+  }, [tableData, t]);
 
   // 获取当前激活表格的数据
   const currentTableData = useMemo(() => {
     if (activeTable === 'all') {
       // 如果选择了"全部"，合并所有表格的记录
       const allRecords: any[] = [];
-      Object.entries(TABLE_DESCRIPTIONS).forEach(([tableKey, tableName]) => {
+      Object.keys(TABLE_TO_TOOL_MAP).forEach((tableKey) => {
         const tableInfo = tableData[tableKey as keyof typeof tableData];
         if (tableInfo && typeof tableInfo === 'object' && 'records' in tableInfo) {
           tableInfo.records.forEach((record: any) => {
@@ -115,14 +122,14 @@ const Index = () => {
               ...record,
               uniqueKey: `${tableKey}-${record.id}`,
               sourceTable: tableKey,
-              sourceTableName: tableName
+              sourceTableName: getTableName(tableKey, t)
             });
           });
         }
       });
       
       return {
-        description: '全部记录',
+        description: t('common.allRecords'),
         records: allRecords,
         stats: { total_records: allRecords.length }
       };
@@ -134,11 +141,11 @@ const Index = () => {
     }
     
     return { 
-      description: TABLE_DESCRIPTIONS[activeTable as keyof typeof TABLE_DESCRIPTIONS] || '未知表格',
+      description: getTableDescription(activeTable, t),
       records: [], 
       stats: { total_records: 0 }
     };
-  }, [tableData, activeTable]);
+  }, [tableData, activeTable, t]);
 
   // 获取所有标签
   const allTags = useMemo(() => {
@@ -162,14 +169,14 @@ const Index = () => {
         loading: sqlLoading,
         error: sqlError,
         hasData: !!sqlData,
-        statusText: sqlError ? 'SQL查询失败' : sqlData ? 'SQL数据已加载' : '使用本地数据'
+        statusText: sqlError ? t('status.sqlQueryFailed') : sqlData ? t('status.sqlDataLoaded') : t('status.useLocalData')
       };
     } else {
       return {
         loading,
         error,
         hasData: !!profileData,
-        statusText: error ? 'MCP连接失败' : profileData ? 'MCP已连接' : '使用本地数据'
+        statusText: error ? t('status.mcpConnectionFailed') : profileData ? t('status.mcpConnected') : t('status.useLocalData')
       };
     }
   };
@@ -241,17 +248,17 @@ const Index = () => {
   // 添加到Cursor配置
   const handleAddToCursor = async () => {
     if (!mcpServersConfig) {
-      showToast('error', '配置信息不可用，请先刷新配置');
+      showToast('error', t('toast.configNotAvailable'));
       return;
     }
 
     setIsAddingToCursor(true);
     try {
       await writeCursorConfig(mcpServersConfig);
-      showToast('success', '已成功添加到Cursor配置文件');
+      showToast('success', t('toast.addToCursorSuccess'));
     } catch (error) {
       console.error('添加到Cursor失败:', error);
-      showToast('error', `添加到Cursor失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      showToast('error', `${t('toast.addToCursorFailed')}: ${error instanceof Error ? error.message : t('common.unknown')}`);
     } finally {
       setIsAddingToCursor(false);
     }
@@ -260,17 +267,17 @@ const Index = () => {
   // 添加到Claude配置
   const handleAddToClaude = async () => {
     if (!mcpServersConfig) {
-      showToast('error', '配置信息不可用，请先刷新配置');
+      showToast('error', t('toast.configNotAvailable'));
       return;
     }
 
     setIsAddingToClaude(true);
     try {
       await writeClaudeConfig(mcpServersConfig);
-      showToast('success', '已成功添加到Claude配置文件，请重启Claude Desktop应用');
+      showToast('success', t('toast.addToClaudeSuccess'));
     } catch (error) {
       console.error('添加到Claude失败:', error);
-      showToast('error', `添加到Claude失败: ${error instanceof Error ? error.message : '未知错误'}`);
+      showToast('error', `${t('toast.addToClaudeFailed')}: ${error instanceof Error ? error.message : t('common.unknown')}`);
     } finally {
       setIsAddingToClaude(false);
     }
@@ -287,22 +294,24 @@ const Index = () => {
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 mb-6 tracking-tight">
                   UserBank
                   <span className="block text-2xl md:text-3xl lg:text-4xl font-thin text-gray-600 mt-2">
-                    数据管理面板
+                    {t('navigation.data')}
                   </span>
                 </h1>
               </div>
               <div className="flex items-center gap-4">
+                {/* 语言切换器 */}
+                <LanguageSwitcher />
                 {/* 统一状态指示器 - 优先显示 Sidecar 状态，成功时显示 MCP 状态 */}
                 <div className="flex items-center gap-2">
                   {sidecarError ? (
                     <>
                       <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="text-sm text-gray-500">Sidecar 错误</span>
+                      <span className="text-sm text-gray-500">{t('status.sidecarError')}</span>
                     </>
                   ) : !sidecarRunning ? (
                     <>
                       <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                      <span className="text-sm text-gray-500">Sidecar 启动中</span>
+                      <span className="text-sm text-gray-500">{t('status.sidecarStarting')}</span>
                     </>
                   ) : (
                     <>
@@ -349,7 +358,7 @@ const Index = () => {
                         <div className="p-6">
                           {/* 设置标题 */}
                           <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-gray-900">设置</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('common.settings')}</h3>
                             <button
                               onClick={() => setShowSettings(false)}
                               className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
@@ -364,7 +373,7 @@ const Index = () => {
                             {/* MCP服务器配置 */}
                               <div className="flex items-center gap-3 mb-3">
                                 <Database className="w-5 h-5 text-gray-600" />
-                                <h4 className="text-sm font-medium text-gray-900">MCP服务器配置</h4>
+                                <h4 className="text-sm font-medium text-gray-900">{t('config.mcp')}</h4>
                               </div>
                               <div className="bg-white rounded-md p-3 border border-gray-200 max-h-64 overflow-y-auto">
                                 {mcpServersConfig ? (
@@ -372,13 +381,13 @@ const Index = () => {
                                     {JSON.stringify(mcpServersConfig, null, 2)}
                                   </pre>
                                 ) : (
-                                  <div className="text-gray-500 text-sm">
-                                    正在构建MCP服务器配置...
-                                  </div>
+                                                                      <div className="text-gray-500 text-sm">
+                                      {t('common.loading')}
+                                    </div>
                                 )}
                               </div>
                               <p className="text-xs text-gray-500 mt-2">
-                                MCP服务器连接配置信息，你可以将这些配置信息复制到MCP客户端的配置文件中，以实现MCP服务器的连接。
+                                {t('config.mcpDescription')}
                               </p>
 
                               {/* 添加到Cursor按钮 */}
@@ -392,12 +401,12 @@ const Index = () => {
                                     {isAddingToCursor ? (
                                       <>
                                         <RefreshCw className="w-4 h-4 animate-spin" />
-                                        添加中...
+                                        {t('common.loading')}
                                       </>
                                     ) : (
                                       <>
                                         <Settings className="w-4 h-4" />
-                                        添加到Cursor
+                                        {t('config.cursor')}
                                       </>
                                     )}
                                   </button>
@@ -410,18 +419,18 @@ const Index = () => {
                                     {isAddingToClaude ? (
                                       <>
                                         <RefreshCw className="w-4 h-4 animate-spin" />
-                                        添加中...
+                                        {t('common.loading')}
                                       </>
                                     ) : (
                                       <>
                                         <Settings className="w-4 h-4" />
-                                        添加到Claude
+                                        {t('config.claude')}
                                       </>
                                     )}
                                   </button>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
-                                  将MCP服务器配置添加到编辑器的配置文件中
+                                  {t('config.addToEditorConfig')}
                                 </p>
                               </div>
                           </div>
@@ -437,7 +446,7 @@ const Index = () => {
           </div>
           <div className="flex items-center justify-between">
             <p className="text-gray-500 text-lg font-light max-w-2xl">
-              管理和查看您的个人知识库数据，探索思维的数字化足迹
+              {t('profile.title')}
             </p>
             {currentStatus.error && (
               <div className="flex items-center gap-2 text-red-600 bg-red-50 px-4 py-2 rounded-lg">
@@ -460,7 +469,7 @@ const Index = () => {
               }`}
             >
               <Table className="w-4 h-4" />
-              表格视图
+              {t('common.table')}
             </button>
             <button
               onClick={() => setViewMode('sql')}
@@ -471,7 +480,7 @@ const Index = () => {
               }`}
             >
               <Database className="w-4 h-4" />
-              SQL查询
+              {t('common.sql')}
             </button>
           </div>
         </div>
@@ -522,7 +531,7 @@ const Index = () => {
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-gray-900 transition-colors" />
                   <input
                     type="text"
-                    placeholder={activeTable === 'all' ? "搜索内容、标签或表格名称..." : "搜索内容或标签..."}
+                    placeholder={activeTable === 'all' ? t('common.searchAll') : t('common.searchContent')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-12 pr-6 py-4 bg-gray-50 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-900/10 focus:outline-none transition-all duration-200 text-gray-900 placeholder-gray-400"
@@ -537,7 +546,7 @@ const Index = () => {
                     onChange={(e) => setSelectedTag(e.target.value)}
                     className="w-full pl-12 pr-6 py-4 bg-gray-50 rounded-xl focus:bg-white focus:ring-2 focus:ring-gray-900/10 focus:outline-none transition-all duration-200 text-gray-900 appearance-none cursor-pointer"
                   >
-                    <option value="">所有标签</option>
+                    <option value="">{t('common.allTags')}</option>
                     {allTags.map((tag: string) => (
                       <option key={tag} value={tag}>{tag}</option>
                     ))}
@@ -551,15 +560,15 @@ const Index = () => {
                   <div className="flex items-center gap-3">
                     <BarChart3 className="w-5 h-5 text-gray-400" />
                     <span className="font-light">
-                      当前表格: <span className="text-gray-900 font-medium">{currentTableData.description}</span>
+                      {t('common.currentTable')}: <span className="text-gray-900 font-medium">{currentTableData.description}</span>
                     </span>
                   </div>
                   <div className="flex gap-6 text-sm">
                     <span className="font-light">
-                      总记录数: <span className="text-gray-900 font-medium">{currentTableData.stats.total_records}</span>
+                      {t('common.totalRecords')}: <span className="text-gray-900 font-medium">{currentTableData.stats.total_records}</span>
                     </span>
                     <span className="font-light">
-                      显示记录数: <span className="text-gray-900 font-medium">{filteredRecords.length}</span>
+                      {t('common.displayRecords')}: <span className="text-gray-900 font-medium">{filteredRecords.length}</span>
                     </span>
                   </div>
                 </div>
@@ -573,9 +582,9 @@ const Index = () => {
                   <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                     <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
                   </div>
-                  <h3 className="text-xl font-light text-gray-900 mb-3">加载中...</h3>
+                  <h3 className="text-xl font-light text-gray-900 mb-3">{t('common.loading')}</h3>
                   <p className="text-gray-500 font-light max-w-md mx-auto">
-                    正在从 {(viewMode as ViewMode) === 'sql' ? 'SQL查询' : 'MCP服务'} 获取数据
+                    {t('messages.loadingData', { source: (viewMode as ViewMode) === 'sql' ? t('common.sql') : 'MCP' })}
                   </p>
                 </div>
               ) : filteredRecords.length === 0 ? (
@@ -583,11 +592,11 @@ const Index = () => {
                   <div className="w-20 h-20 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
                     <Search className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-light text-gray-900 mb-3">暂无数据</h3>
+                  <h3 className="text-xl font-light text-gray-900 mb-3">{t('messages.noData')}</h3>
                   <p className="text-gray-500 font-light max-w-md mx-auto">
                     {currentTableData.records.length === 0 
-                      ? `${currentTableData.description}表格暂无记录` 
-                      : '没有找到匹配的记录，请尝试调整搜索条件'
+                      ? t('messages.tableEmpty', { table: currentTableData.description })
+                      : t('messages.noMatchingRecords')
                     }
                   </p>
                 </div>
@@ -639,11 +648,11 @@ const Index = () => {
                           {/* 时间信息 */}
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4" />
-                            <span className="text-sm">创建: {formatTime(record.created_time)}</span>
+                            <span className="text-sm">{t('common.created')}: {formatTime(record.created_time)}</span>
                           </div>
                           {record.updated_time && record.updated_time !== record.created_time && (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm">更新: {formatTime(record.updated_time)}</span>
+                              <span className="text-sm">{t('common.updated')}: {formatTime(record.updated_time)}</span>
                             </div>
                           )}
                         </div>
@@ -721,11 +730,11 @@ const Index = () => {
                     </div>
                     
                     <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                      确认删除记录
+                      {t('modal.confirmDelete')}
                     </h3>
                     
                     <p className="text-gray-600 mb-6 leading-relaxed">
-                      您确定要删除这条记录吗？此操作不可撤销。
+                      {t('modal.confirmDeleteMessage')}
                     </p>
                     
                     {/* 显示要删除的记录内容预览 */}
@@ -745,7 +754,7 @@ const Index = () => {
                           ))}
                           {deletingRecord.keywords.length > 3 && (
                             <span className="text-xs text-gray-500">
-                              +{deletingRecord.keywords.length - 3} 更多
+                              {t('messages.moreItems', { count: deletingRecord.keywords.length - 3 })}
                             </span>
                           )}
                         </div>
@@ -758,14 +767,14 @@ const Index = () => {
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-200"
                       >
                         <X className="w-4 h-4" />
-                        取消
+                        {t('common.cancel')}
                       </button>
                       <button
                         onClick={confirmDeleteRecord}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-200"
                       >
                         <Check className="w-4 h-4" />
-                        确认删除
+                        {t('common.confirm')}
                       </button>
                     </div>
                   </div>
