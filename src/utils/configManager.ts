@@ -1,5 +1,5 @@
-import { resourceDir, join } from '@tauri-apps/api/path';
-import { readTextFile, exists } from '@tauri-apps/plugin-fs';
+import { resourceDir, join, homeDir } from '@tauri-apps/api/path';
+import { readTextFile, exists, writeTextFile } from '@tauri-apps/plugin-fs';
 
 // 配置文件数据结构
 export interface ConfigData {
@@ -110,3 +110,67 @@ export const buildMCPServersConfig = async (
     }
   };
 }; 
+
+export const getHomeDir = async (): Promise<string> => {
+    const home = await homeDir();
+    return home;
+};
+
+export const getCursorConfig = async (): Promise<string> => {
+    try {
+        const home = await getHomeDir();
+        const cursorConfig = await join(home, '.cursor', 'mcp.json');
+        console.log("cursorConfig", cursorConfig);
+        
+        if (await exists(cursorConfig)) {
+            const cursorConfigContent = await readTextFile(cursorConfig);
+            console.log("cursorConfigContent", cursorConfigContent);
+            return cursorConfigContent;
+        } else {
+            console.log("Cursor配置文件不存在:", cursorConfig);
+            return '';
+        }
+    } catch (error) {
+        console.error('读取Cursor配置文件失败:', error);
+        return '';
+    }
+};
+
+export const writeCursorConfig = async (config: MCPServersConfig): Promise<void> => {
+    try {
+        const home = await getHomeDir();
+        const cursorConfigPath = await join(home, '.cursor', 'mcp.json');
+        
+        let existingConfig: any = {};
+        
+        // 读取现有配置
+        if (await exists(cursorConfigPath)) {
+            const existingConfigContent = await readTextFile(cursorConfigPath);
+            try {
+                existingConfig = JSON.parse(existingConfigContent);
+            } catch (parseError) {
+                console.warn('解析现有Cursor配置失败，将创建新配置:', parseError);
+                existingConfig = {};
+            }
+        }
+        
+        // 确保 mcpServers 对象存在
+        if (!existingConfig.mcpServers) {
+            existingConfig.mcpServers = {};
+        }
+        
+        // 插入或替换 userbank 配置
+        existingConfig.mcpServers['userbank-sse'] = config.mcpServers['userbank-sse'];
+        existingConfig.mcpServers['userbank-stdio'] = config.mcpServers['userbank-stdio'];
+        
+        // 写入更新后的配置
+        const updatedConfigContent = JSON.stringify(existingConfig, null, 2);
+        await writeTextFile(cursorConfigPath, updatedConfigContent);
+        
+        console.log('Cursor配置已更新:', cursorConfigPath);
+    } catch (error) {
+        console.error('写入Cursor配置文件失败:', error);
+        throw error;
+    }
+};
+

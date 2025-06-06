@@ -7,10 +7,22 @@
     "core:default",
     "opener:default",
     "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
     "fs:allow-exists",
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "$RESOURCE" }, { "path": "$RESOURCE/**" }]
+      "allow": [
+        { "path": "$RESOURCE" }, 
+        { "path": "$RESOURCE/**" },
+        { "path": "$HOME/.cursor" },
+        { "path": "$HOME/.cursor/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$HOME/.cursor/**" }
+      ]
     },
     {
       "identifier": "shell:allow-execute",

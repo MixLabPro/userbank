@@ -14,7 +14,7 @@ import {
 import AddRecordModal from '../components/AddRecordModal';
 import EditRecordModal from '../components/EditRecordModal';
 import SQLQueryPanel from '../components/SQLQueryPanel';
-import { getResourceDirAndConfig, buildMCPServersConfig, ConfigData, MCPServersConfig } from '../utils/configManager';
+import { getResourceDirAndConfig, buildMCPServersConfig, ConfigData, MCPServersConfig, writeCursorConfig } from '../utils/configManager';
 
 type ViewMode = 'table' | 'sql';
 
@@ -30,6 +30,8 @@ const Index = () => {
   const [deletedRecords, setDeletedRecords] = useState<Set<string>>(new Set());
   const [showSettings, setShowSettings] = useState(false);
   const [mcpServersConfig, setMcpServersConfig] = useState<MCPServersConfig | null>(null);
+  const [isAddingToCursor, setIsAddingToCursor] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
@@ -227,6 +229,33 @@ const Index = () => {
     }
   };
 
+  // 显示Toast消息
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToastMessage({ type, message });
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // 添加到Cursor配置
+  const handleAddToCursor = async () => {
+    if (!mcpServersConfig) {
+      showToast('error', '配置信息不可用，请先刷新配置');
+      return;
+    }
+
+    setIsAddingToCursor(true);
+    try {
+      await writeCursorConfig(mcpServersConfig);
+      showToast('success', '已成功添加到Cursor配置文件');
+    } catch (error) {
+      console.error('添加到Cursor失败:', error);
+      showToast('error', `添加到Cursor失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
+      setIsAddingToCursor(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 lg:p-12">
@@ -296,7 +325,7 @@ const Index = () => {
                         onClick={() => setShowSettings(false)}
                       />
                       {/* 设置面板 */}
-                      <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl shadow-gray-900/20 border border-gray-100 z-50 transform transition-all duration-200 scale-100 opacity-100">
+                      <div className="absolute right-0 top-full mt-2 w-100 bg-white rounded-xl shadow-2xl shadow-gray-900/20 border border-gray-100 z-50 transform transition-all duration-200 scale-100 opacity-100">
                         <div className="p-6">
                           {/* 设置标题 */}
                           <div className="flex items-center justify-between mb-6">
@@ -331,6 +360,30 @@ const Index = () => {
                               <p className="text-xs text-gray-500 mt-2">
                                 MCP服务器连接配置信息
                               </p>
+
+                              {/* 添加到Cursor按钮 */}
+                              <div className="mt-6 pt-4 border-t border-gray-100">
+                                <button
+                                  onClick={handleAddToCursor}
+                                  disabled={!mcpServersConfig || isAddingToCursor}
+                                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
+                                >
+                                  {isAddingToCursor ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                      添加中...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Settings className="w-4 h-4" />
+                                      添加到Cursor
+                                    </>
+                                  )}
+                                </button>
+                                <p className="text-xs text-gray-500 mt-2 text-center">
+                                  将MCP服务器配置添加到Cursor的配置文件中
+                                </p>
+                              </div>
                           </div>
       
                         </div>
@@ -680,6 +733,26 @@ const Index = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Toast消息 */}
+        {toastMessage && (
+          <div className="fixed top-4 right-4 z-50">
+            <div className={`px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+              toastMessage.type === 'success' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-red-500 text-white'
+            }`}>
+              <div className="flex items-center gap-3">
+                {toastMessage.type === 'success' ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5" />
+                )}
+                <span className="font-medium">{toastMessage.message}</span>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
