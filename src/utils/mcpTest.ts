@@ -204,7 +204,23 @@ export const validateToolMapping = () => {
       issues.push(`表名 ${tableName} 没有对应的工具名`);
     }
     
-    const description = getTableDescription(tableName);
+    // 创建一个简单的翻译函数用于测试
+    const mockT = (key: string) => {
+      const translations: { [key: string]: string } = {
+        'tables.descriptions.memory': '记忆存储表',
+        'tables.descriptions.viewpoint': '观点记录表',
+        'tables.descriptions.insight': '洞察分析表',
+        'tables.descriptions.goal': '目标管理表',
+        'tables.descriptions.preference': '偏好设置表',
+        'tables.descriptions.methodology': '方法论表',
+        'tables.descriptions.focus': '专注事项表',
+        'tables.descriptions.prediction': '预测记录表',
+        'common.unknownTable': '未知表格'
+      };
+      return translations[key] || key;
+    };
+    
+    const description = getTableDescription(tableName, mockT);
     if (!description || description === '未知表格') {
       issues.push(`表名 ${tableName} 没有有效的描述`);
     }
