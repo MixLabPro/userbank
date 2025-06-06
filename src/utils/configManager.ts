@@ -1,4 +1,4 @@
-import { resourceDir, join, homeDir } from '@tauri-apps/api/path';
+import { resourceDir, join, homeDir, dataDir } from '@tauri-apps/api/path';
 import { readTextFile, exists, writeTextFile } from '@tauri-apps/plugin-fs';
 
 // 配置文件数据结构
@@ -141,17 +141,20 @@ export const writeCursorConfig = async (config: MCPServersConfig): Promise<void>
         const home = await getHomeDir();
         const cursorConfigPath = await join(home, '.cursor', 'mcp.json');
         
+        // 检查Cursor配置文件是否存在
+        if (!(await exists(cursorConfigPath))) {
+            throw new Error('Cursor配置文件不存在，请确保已安装Cursor编辑器');
+        }
+        
         let existingConfig: any = {};
         
         // 读取现有配置
-        if (await exists(cursorConfigPath)) {
-            const existingConfigContent = await readTextFile(cursorConfigPath);
-            try {
-                existingConfig = JSON.parse(existingConfigContent);
-            } catch (parseError) {
-                console.warn('解析现有Cursor配置失败，将创建新配置:', parseError);
-                existingConfig = {};
-            }
+        const existingConfigContent = await readTextFile(cursorConfigPath);
+        try {
+            existingConfig = JSON.parse(existingConfigContent);
+        } catch (parseError) {
+            console.warn('解析现有Cursor配置失败，将创建新配置:', parseError);
+            existingConfig = {};
         }
         
         // 确保 mcpServers 对象存在
@@ -173,4 +176,46 @@ export const writeCursorConfig = async (config: MCPServersConfig): Promise<void>
         throw error;
     }
 };
+
+export const writeClaudeConfig = async (config: MCPServersConfig): Promise<void> => {
+    try {
+        const dataDirectory = await dataDir();
+        console.log("dataDirectory", dataDirectory);
+        const claudeConfigPath = await join(dataDirectory, 'Claude', 'claude_desktop_config.json');
+        
+        // 检查Claude配置文件是否存在
+        if (!(await exists(claudeConfigPath))) {
+            throw new Error('Claude配置文件不存在，请确保已安装Claude Desktop应用');
+        }
+        
+        let existingConfig: any = {};
+        
+        // 读取现有配置
+        const existingConfigContent = await readTextFile(claudeConfigPath);
+        try {
+            existingConfig = JSON.parse(existingConfigContent);
+        } catch (parseError) {
+            console.warn('解析现有Claude配置失败，将创建新配置:', parseError);
+            existingConfig = {};
+        }
+        
+        // 确保 mcpServers 对象存在
+        if (!existingConfig.mcpServers) {
+            existingConfig.mcpServers = {};
+        }
+        
+        // 插入或替换 userbank 配置
+        existingConfig.mcpServers['userbank-sse'] = config.mcpServers['userbank-sse'];
+        existingConfig.mcpServers['userbank-stdio'] = config.mcpServers['userbank-stdio'];
+        
+        // 写入更新后的配置
+        const updatedConfigContent = JSON.stringify(existingConfig, null, 2);
+        await writeTextFile(claudeConfigPath, updatedConfigContent);
+        
+        console.log('Claude配置已更新:', claudeConfigPath);
+    } catch (error) {
+        console.error('写入Claude配置文件失败:', error);
+        throw error;
+    }
+}
 

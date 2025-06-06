@@ -15,13 +15,20 @@
         { "path": "$RESOURCE" }, 
         { "path": "$RESOURCE/**" },
         { "path": "$HOME/.cursor" },
-        { "path": "$HOME/.cursor/**" }
+        { "path": "$HOME/.cursor/**" },
+        { "path": "$APPDATA" },
+        { "path": "$DATA" },
+        { "path": "$DATA/**" },
+        { "path": "$DATA/Claude" },
+        { "path": "$DATA/Claude/**" }
       ]
     },
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [
-        { "path": "$HOME/.cursor/**" }
+        { "path": "$HOME/.cursor/**" },
+        { "path": "$DATA/**" },
+        { "path": "$DATA/Claude/**" }
       ]
     },
     {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings, Folder, FileText } from 'lucide-react';
+import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 import { useSidecar } from '../hooks/useSidecar';
@@ -14,7 +14,7 @@ import {
 import AddRecordModal from '../components/AddRecordModal';
 import EditRecordModal from '../components/EditRecordModal';
 import SQLQueryPanel from '../components/SQLQueryPanel';
-import { getResourceDirAndConfig, buildMCPServersConfig, ConfigData, MCPServersConfig, writeCursorConfig } from '../utils/configManager';
+import { getResourceDirAndConfig, buildMCPServersConfig, MCPServersConfig, writeCursorConfig, writeClaudeConfig } from '../utils/configManager';
 
 type ViewMode = 'table' | 'sql';
 
@@ -31,6 +31,7 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [mcpServersConfig, setMcpServersConfig] = useState<MCPServersConfig | null>(null);
   const [isAddingToCursor, setIsAddingToCursor] = useState(false);
+  const [isAddingToClaude, setIsAddingToClaude] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // 启动 sidecar 服务
@@ -256,6 +257,25 @@ const Index = () => {
     }
   };
 
+  // 添加到Claude配置
+  const handleAddToClaude = async () => {
+    if (!mcpServersConfig) {
+      showToast('error', '配置信息不可用，请先刷新配置');
+      return;
+    }
+
+    setIsAddingToClaude(true);
+    try {
+      await writeClaudeConfig(mcpServersConfig);
+      showToast('success', '已成功添加到Claude配置文件，请重启Claude Desktop应用');
+    } catch (error) {
+      console.error('添加到Claude失败:', error);
+      showToast('error', `添加到Claude失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    } finally {
+      setIsAddingToClaude(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 lg:p-12">
@@ -358,30 +378,50 @@ const Index = () => {
                                 )}
                               </div>
                               <p className="text-xs text-gray-500 mt-2">
-                                MCP服务器连接配置信息
+                                MCP服务器连接配置信息，你可以将这些配置信息复制到MCP客户端的配置文件中，以实现MCP服务器的连接。
                               </p>
 
                               {/* 添加到Cursor按钮 */}
                               <div className="mt-6 pt-4 border-t border-gray-100">
-                                <button
-                                  onClick={handleAddToCursor}
-                                  disabled={!mcpServersConfig || isAddingToCursor}
-                                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
-                                >
-                                  {isAddingToCursor ? (
-                                    <>
-                                      <RefreshCw className="w-4 h-4 animate-spin" />
-                                      添加中...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Settings className="w-4 h-4" />
-                                      添加到Cursor
-                                    </>
-                                  )}
-                                </button>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <button
+                                    onClick={handleAddToCursor}
+                                    disabled={!mcpServersConfig || isAddingToCursor}
+                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
+                                  >
+                                    {isAddingToCursor ? (
+                                      <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        添加中...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Settings className="w-4 h-4" />
+                                        添加到Cursor
+                                      </>
+                                    )}
+                                  </button>
+                                  
+                                  <button
+                                    onClick={handleAddToClaude}
+                                    disabled={!mcpServersConfig || isAddingToClaude}
+                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
+                                  >
+                                    {isAddingToClaude ? (
+                                      <>
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        添加中...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Settings className="w-4 h-4" />
+                                        添加到Claude
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
-                                  将MCP服务器配置添加到Cursor的配置文件中
+                                  将MCP服务器配置添加到编辑器的配置文件中
                                 </p>
                               </div>
                           </div>
