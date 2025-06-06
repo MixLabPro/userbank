@@ -6,6 +6,12 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "fs:allow-read-text-file",
+    "fs:allow-exists",
+    {
+      "identifier": "fs:scope",
+      "allow": [{ "path": "$RESOURCE" }, { "path": "$RESOURCE/**" }]
+    },
     {
       "identifier": "shell:allow-execute",
       "allow": [

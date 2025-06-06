@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings, Folder, FileText } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 import { useSidecar } from '../hooks/useSidecar';
@@ -14,6 +14,8 @@ import {
 import AddRecordModal from '../components/AddRecordModal';
 import EditRecordModal from '../components/EditRecordModal';
 import SQLQueryPanel from '../components/SQLQueryPanel';
+import { resourceDir, join } from '@tauri-apps/api/path';
+import { readTextFile, exists } from '@tauri-apps/plugin-fs';
 
 type ViewMode = 'table' | 'sql';
 
@@ -28,9 +30,44 @@ const Index = () => {
   const [deletingRecord, setDeletingRecord] = useState<any>(null);
   const [deletedRecords, setDeletedRecords] = useState<Set<string>>(new Set());
   const [showSettings, setShowSettings] = useState(false);
+  const [resourceDirPath, setResourceDirPath] = useState<string>('');
+  const [configData, setConfigData] = useState<any>(null);
+  const [configError, setConfigError] = useState<string>('');
   
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
+
+  // 获取资源目录路径和配置文件
+  useEffect(() => {
+    const getResourceDirAndConfig = async () => {
+      try {
+        const path = await resourceDir();
+        setResourceDirPath(path);
+        
+        // 读取配置文件
+        const configPath = await join(path, 'config.json');
+        const configExists = await exists(configPath);
+
+        console.log("configPath", configPath);
+        
+        if (configExists) {
+          const configContent = await readTextFile(configPath);
+          const parsedConfig = JSON.parse(configContent);
+          console.log("parsedConfig", parsedConfig);
+          setConfigData(parsedConfig);
+          setConfigError('');
+        } else {
+          setConfigError('配置文件不存在');
+        }
+      } catch (error) {
+        console.error('获取资源目录路径或读取配置文件失败:', error);
+        setResourceDirPath('获取路径失败');
+        setConfigError(`读取配置文件失败: ${error}`);
+      }
+    };
+    
+    getResourceDirAndConfig();
+  }, []);
   
   // 使用 MCP 服务获取数据
   const { data: profileData, loading, error, refreshData } = useProfile();
@@ -279,7 +316,50 @@ const Index = () => {
                               <X className="w-4 h-4" />
                             </button>
                           </div>
-                                               
+
+                          {/* 资源目录路径 */}
+                          <div className="space-y-4">
+                            <div className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <Folder className="w-5 h-5 text-gray-600" />
+                                <h4 className="text-sm font-medium text-gray-900">资源目录路径</h4>
+                              </div>
+                              <div className="bg-white rounded-md p-3 border border-gray-200">
+                                <code className="text-sm text-gray-700 break-all">
+                                  {resourceDirPath || '正在获取...'}
+                                </code>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                应用程序资源文件的存储位置
+                              </p>
+                            </div>
+
+                            {/* 配置文件内容 */}
+                            <div className="bg-gray-50 rounded-lg p-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <FileText className="w-5 h-5 text-gray-600" />
+                                <h4 className="text-sm font-medium text-gray-900">配置文件 (config.json)</h4>
+                              </div>
+                              <div className="bg-white rounded-md p-3 border border-gray-200 max-h-64 overflow-y-auto">
+                                {configError ? (
+                                  <div className="text-red-600 text-sm">
+                                    {configError}
+                                  </div>
+                                ) : configData ? (
+                                  <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                                    {JSON.stringify(configData, null, 2)}
+                                  </pre>
+                                ) : (
+                                  <div className="text-gray-500 text-sm">
+                                    正在读取配置文件...
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 mt-2">
+                                应用程序配置信息
+                              </p>
+                            </div>
+                          </div>
       
                         </div>
                       </div>
