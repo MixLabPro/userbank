@@ -11,10 +11,26 @@ import {
   buildQueryParams,
   buildSaveParams
 } from '../utils/tableMapping'
+import { getResourceDirAndConfig, getMCPUrl, ConfigData } from '../utils/configManager'
 
-export const getDefaultMcpSettings = (): MCPSettings => {
+// 缓存配置数据
+let cachedConfigData: ConfigData | null = null
+
+// 获取配置数据
+const getConfigData = async (): Promise<ConfigData | null> => {
+  if (!cachedConfigData) {
+    const { configData } = await getResourceDirAndConfig()
+    cachedConfigData = configData
+  }
+  return cachedConfigData
+}
+
+export const getDefaultMcpSettings = async (): Promise<MCPSettings> => {
+  const configData = await getConfigData()
+  const mcpUrl = getMCPUrl(configData)
+  
   return {
-    mcpUrl: 'http://127.0.0.1:8088/sse'
+    mcpUrl
   }
 }
 
@@ -81,7 +97,7 @@ const callMCPTool = async (
   timeout: number = 10000,
   reuseConnection: boolean = true
 ): Promise<any> => {
-  const mcpSettings = settings || getDefaultMcpSettings()
+  const mcpSettings = settings || await getDefaultMcpSettings()
   const url = mcpSettings.mcpUrl
 
   try {
@@ -324,7 +340,7 @@ export const getAllTableContents = async (settings?: MCPSettings): Promise<Profi
 
 // 获取表格统计信息
 export const getTableStats = async (settings?: MCPSettings): Promise<TableStats[] | null> => {
-  const mcpSettings = settings || getDefaultMcpSettings()
+  const mcpSettings = settings || await getDefaultMcpSettings()
   
   try {
     const profileData = await getAllTableContents(mcpSettings)

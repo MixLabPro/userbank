@@ -14,8 +14,7 @@ import {
 import AddRecordModal from '../components/AddRecordModal';
 import EditRecordModal from '../components/EditRecordModal';
 import SQLQueryPanel from '../components/SQLQueryPanel';
-import { resourceDir, join } from '@tauri-apps/api/path';
-import { readTextFile, exists } from '@tauri-apps/plugin-fs';
+import { getResourceDirAndConfig, buildMCPServersConfig, ConfigData, MCPServersConfig } from '../utils/configManager';
 
 type ViewMode = 'table' | 'sql';
 
@@ -30,44 +29,30 @@ const Index = () => {
   const [deletingRecord, setDeletingRecord] = useState<any>(null);
   const [deletedRecords, setDeletedRecords] = useState<Set<string>>(new Set());
   const [showSettings, setShowSettings] = useState(false);
-  const [resourceDirPath, setResourceDirPath] = useState<string>('');
-  const [configData, setConfigData] = useState<any>(null);
-  const [configError, setConfigError] = useState<string>('');
+  const [mcpServersConfig, setMcpServersConfig] = useState<MCPServersConfig | null>(null);
   
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
 
   // 获取资源目录路径和配置文件的函数
-  const getResourceDirAndConfig = async () => {
+  const loadConfigData = async () => {
     try {
-      const path = await resourceDir();
-      setResourceDirPath(path);
-      
-      // 读取配置文件
-      const configPath = await join(path, 'config.json');
-      const configExists = await exists(configPath);
+      const { resourceDirPath: path, configData: config} = await getResourceDirAndConfig();
 
-      console.log("configPath", configPath);
       
-      if (configExists) {
-        const configContent = await readTextFile(configPath);
-        const parsedConfig = JSON.parse(configContent);
-        console.log("parsedConfig", parsedConfig);
-        setConfigData(parsedConfig);
-        setConfigError('');
-      } else {
-        setConfigError('配置文件不存在');
+      // 构建MCP服务器配置
+      if (config && path) {
+        const mcpConfig = await buildMCPServersConfig(config, path);
+        setMcpServersConfig(mcpConfig);
       }
     } catch (error) {
-      console.error('获取资源目录路径或读取配置文件失败:', error);
-      setResourceDirPath('获取路径失败');
-      setConfigError(`读取配置文件失败: ${error}`);
+      console.error('加载配置数据失败:', error);
     }
   };
 
   // 初始化时获取资源目录路径和配置文件
   useEffect(() => {
-    getResourceDirAndConfig();
+    loadConfigData();
   }, []);
   
   // 使用 MCP 服务获取数据
@@ -294,7 +279,7 @@ const Index = () => {
                       setShowSettings(!showSettings);
                       // 重新获取配置文件数据
                       if (!showSettings) {
-                        getResourceDirAndConfig();
+                        loadConfigData();
                       }
                     }}
                     className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
@@ -326,46 +311,26 @@ const Index = () => {
 
                           {/* 资源目录路径 */}
                           <div className="space-y-4">
-                            <div className="bg-gray-50 rounded-lg p-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <Folder className="w-5 h-5 text-gray-600" />
-                                <h4 className="text-sm font-medium text-gray-900">资源目录路径</h4>
-                              </div>
-                              <div className="bg-white rounded-md p-3 border border-gray-200">
-                                <code className="text-sm text-gray-700 break-all">
-                                  {resourceDirPath || '正在获取...'}
-                                </code>
-                              </div>
-                              <p className="text-xs text-gray-500 mt-2">
-                                应用程序资源文件的存储位置
-                              </p>
-                            </div>
 
-                            {/* 配置文件内容 */}
-                            <div className="bg-gray-50 rounded-lg p-4">
+                            {/* MCP服务器配置 */}
                               <div className="flex items-center gap-3 mb-3">
-                                <FileText className="w-5 h-5 text-gray-600" />
-                                <h4 className="text-sm font-medium text-gray-900">配置文件 (config.json)</h4>
+                                <Database className="w-5 h-5 text-gray-600" />
+                                <h4 className="text-sm font-medium text-gray-900">MCP服务器配置</h4>
                               </div>
                               <div className="bg-white rounded-md p-3 border border-gray-200 max-h-64 overflow-y-auto">
-                                {configError ? (
-                                  <div className="text-red-600 text-sm">
-                                    {configError}
-                                  </div>
-                                ) : configData ? (
+                                {mcpServersConfig ? (
                                   <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                                    {JSON.stringify(configData, null, 2)}
+                                    {JSON.stringify(mcpServersConfig, null, 2)}
                                   </pre>
                                 ) : (
                                   <div className="text-gray-500 text-sm">
-                                    正在读取配置文件...
+                                    正在构建MCP服务器配置...
                                   </div>
                                 )}
                               </div>
                               <p className="text-xs text-gray-500 mt-2">
-                                应用程序配置信息
+                                MCP服务器连接配置信息
                               </p>
-                            </div>
                           </div>
       
                         </div>

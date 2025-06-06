@@ -1,6 +1,18 @@
 import { MCPSettings } from '../types';
+import { getResourceDirAndConfig, getMCPUrl } from '../utils/configManager';
 
-// MCP 服务器配置
+// 获取MCP配置
+export const getMCPConfig = async (): Promise<MCPSettings> => {
+  const { configData } = await getResourceDirAndConfig();
+  const mcpUrl = getMCPUrl(configData);
+  
+  return {
+    mcpUrl,
+    mcpTool: 'get_all_table_contents'
+  };
+};
+
+// 默认MCP配置（向后兼容）
 export const MCP_CONFIG: MCPSettings = {
   mcpUrl: 'http://127.0.0.1:8088/sse',
   mcpTool: 'get_all_table_contents'
