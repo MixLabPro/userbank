@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check } from 'lucide-react';
+import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 import { useSidecar } from '../hooks/useSidecar';
@@ -27,6 +27,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [deletingRecord, setDeletingRecord] = useState<any>(null);
   const [deletedRecords, setDeletedRecords] = useState<Set<string>>(new Set());
+  const [showSettings, setShowSettings] = useState(false);
   
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
@@ -248,6 +249,43 @@ const Index = () => {
                 >
                   <RefreshCw className={`w-5 h-5 ${currentStatus.loading ? 'animate-spin' : ''}`} />
                 </button>
+                {/* 设置按钮 */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </button>
+                  
+                  {/* 设置浮层 */}
+                  {showSettings && (
+                    <>
+                      {/* 背景遮罩 */}
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowSettings(false)}
+                      />
+                      {/* 设置面板 */}
+                      <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl shadow-gray-900/20 border border-gray-100 z-50 transform transition-all duration-200 scale-100 opacity-100">
+                        <div className="p-6">
+                          {/* 设置标题 */}
+                          <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-semibold text-gray-900">设置</h3>
+                            <button
+                              onClick={() => setShowSettings(false)}
+                              className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                                               
+      
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             <div className="absolute -left-2 top-0 w-1 h-full bg-gradient-to-b from-gray-900 via-gray-600 to-transparent rounded-full"></div>
