@@ -5,7 +5,6 @@ import { MCPSettings, ProfileData, TableStats, ProfileRecord, Persona, SQLResult
 import { 
   TABLE_TO_TOOL_MAP, 
   getToolName, 
-  getTableDescription, 
   isValidTableName,
   buildQueryParams,
   buildSaveParams
