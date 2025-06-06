@@ -299,8 +299,6 @@ const Index = () => {
                 </h1>
               </div>
               <div className="flex items-center gap-4">
-                {/* 语言切换器 */}
-                <LanguageSwitcher />
                 {/* 统一状态指示器 - 优先显示 Sidecar 状态，成功时显示 MCP 状态 */}
                 <div className="flex items-center gap-2">
                   {sidecarError ? (
@@ -367,10 +365,17 @@ const Index = () => {
                             </button>
                           </div>
 
-                          {/* 资源目录路径 */}
-                          <div className="space-y-4">
+                          {/* 语言设置 */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <Settings className="w-5 h-5 text-gray-600" />
+                              <h4 className="text-sm font-medium text-gray-900">{t('common.language')}</h4>
+                            </div>
+                            <LanguageSwitcher />
+                          </div>            
 
-                            {/* MCP服务器配置 */}
+                          {/* MCP服务器配置 */}
+                          <div className="space-y-4 mt-6 pt-6 border-t border-gray-100">
                               <div className="flex items-center gap-3 mb-3">
                                 <Database className="w-5 h-5 text-gray-600" />
                                 <h4 className="text-sm font-medium text-gray-900">{t('config.mcp')}</h4>
