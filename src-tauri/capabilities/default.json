@@ -10,7 +10,7 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "name": "binaries/userbank_core_sse",
+          "name": "binaries/UserBank_SSE_Core",
           "sidecar": true
         }
       ]
@@ -19,7 +19,7 @@
       "identifier": "shell:allow-spawn",
       "allow": [
         {
-          "name": "binaries/userbank_core_sse",
+          "name": "binaries/UserBank_SSE_Core",
           "sidecar": true
         }
       ]

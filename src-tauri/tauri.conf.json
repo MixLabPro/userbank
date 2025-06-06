@@ -33,8 +33,8 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "binaries/userbank_core_sse",
-      "binaries/userbank_core_stdio"
+      "binaries/UserBank_SSE_Core",
+      "binaries/UserBank_Stdio_Core"
     ]
   }
 }

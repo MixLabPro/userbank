@@ -15,7 +15,7 @@ export class SidecarService {
   }
 
   /**
-   * 检查系统中是否已经存在 userbank_core_sse 进程
+   * 检查系统中是否已经存在 UserBank_SSE_Core 进程
    */
   private async checkExistingProcess(): Promise<boolean> {
     try {
@@ -28,15 +28,15 @@ export class SidecarService {
       
       if (isWindows) {
         // Windows 系统使用 tasklist 命令
-        processName = 'userbank_core_sse.exe';
+        processName = 'UserBank_SSE_Core.exe';
         command = Command.create('tasklist', ['/FI', `IMAGENAME eq ${processName}`]);
       } else if (isMacOS) {
         // macOS 系统使用 ps 命令
-        processName = 'userbank_core_sse';
+        processName = 'UserBank_SSE_Core';
         command = Command.create('ps', ['aux']);
       } else {
         // Linux 系统也使用 ps 命令
-        processName = 'userbank_core_sse';
+        processName = 'UserBank_SSE_Core';
         command = Command.create('ps', ['aux']);
       }
       
@@ -56,7 +56,7 @@ export class SidecarService {
   }
 
   /**
-   * 启动 userbank_core_sse sidecar
+   * 启动 UserBank_SSE_Core sidecar
    */
   public async startSidecar(): Promise<void> {
     if (this.isRunning) {
@@ -65,24 +65,24 @@ export class SidecarService {
     }
 
     try {
-      // 先检查系统中是否已经存在 userbank_core_sse 进程
+      // 先检查系统中是否已经存在 UserBank_SSE_Core 进程
       const processExists = await this.checkExistingProcess();
       if (processExists) {
-        console.log('系统中已存在 userbank_core_sse 进程，跳过启动');
+        console.log('系统中已存在 UserBank_SSE_Core 进程，跳过启动');
         this.isRunning = true; // 标记为运行状态，但不保存进程引用
         return;
       }
 
-      console.log('正在启动 userbank_core_sse sidecar...');
+      console.log('正在启动 UserBank_SSE_Core sidecar...');
       
       // 创建 sidecar 命令
-      const command = Command.sidecar('binaries/userbank_core_sse');
+      const command = Command.sidecar('binaries/UserBank_SSE_Core');
       
       // 使用 spawn 方法启动进程，这样可以保持进程运行
       this.sidecarProcess = await command.spawn();
       this.isRunning = true;
       
-      console.log('userbank_core_sse sidecar 启动成功');
+      console.log('UserBank_SSE_Core sidecar 启动成功');
 
       // 在 Tauri 2.0 中，我们可以简单地保持进程运行
       // 如果需要监听输出，可以使用 execute 方法或其他方式
@@ -116,11 +116,11 @@ export class SidecarService {
         
         if (isWindows) {
           // Windows 系统使用 taskkill 命令
-          const command = Command.create('taskkill', ['/F', '/IM', 'userbank_core_sse.exe']);
+          const command = Command.create('taskkill', ['/F', '/IM', 'UserBank_SSE_Core.exe']);
           await command.execute();
         } else {
           // macOS 和 Linux 系统使用 pkill 命令
-          const command = Command.create('pkill', ['-f', 'userbank_core_sse']);
+          const command = Command.create('pkill', ['-f', 'UserBank_SSE_Core']);
           await command.execute();
         }
       }
