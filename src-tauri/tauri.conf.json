@@ -1,57 +1,58 @@
 {
-  "$schema": "https://schema.tauri.app/config/2",
-  "productName": "UserBank",
-  "version": "0.1.4",
-  "identifier": "com.userbank.app",
-  "build": {
-    "beforeDevCommand": "npm run dev",
-    "devUrl": "http://localhost:3000",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../dist"
-  },
-  "app": {
-    "windows": [
-      {
-        "title": "userbank",
-        "width": 800,
-        "height": 600,
-        "hiddenTitle": true,
-        "transparent": true,
-        "alwaysOnTop": true,
-        "center": true
-      }
-    ],
-    "security": {
-      "csp": null
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "UserBank",
+    "version": "0.1.4",
+    "identifier": "com.userbank.app",
+    "build": {
+        "beforeDevCommand": "npm run dev",
+        "devUrl": "http://localhost:3000",
+        "beforeBuildCommand": "npm run build",
+        "frontendDist": "../dist"
+    },
+    "app": {
+        "windows": [{
+            "title": "userbank",
+            "width": 800,
+            "height": 600,
+            "hiddenTitle": true,
+            "transparent": true,
+            "alwaysOnTop": true,
+            "center": true
+        }],
+        "security": {
+            "csp": null
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "externalBin": [
+            "binaries/UserBank_SSE_Core",
+            "binaries/UserBank_Stdio_Core"
+        ],
+        "createUpdaterArtifacts": true,
+        "macOS": {
+            "signingIdentity": "Developer ID Application: zhiwei chi (NFWA6SD73N)"
+        }
+    },
+    "plugins": {
+        "updater": {
+            "active": true,
+            "endpoints": [
+                "https://github.com/MixLabPro/userbank/releases/latest/download/update.json"
+            ],
+            "dialog": true,
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY1N0MyQzQ5RTk5NTA3NkIKUldSckI1WHBTU3g4WmVHTDdodjNnTHhCSms3cU51dmdWVTBiSzlhMHUrZWxZbDNUWm1rWlRDT3MK",
+            "windows": {
+                "installMode": "passive"
+            }
+        }
     }
-  },
-  "bundle": {
-    "active": true,
-    "targets": "all",
-    "icon": [
-      "icons/32x32.png",
-      "icons/128x128.png",
-      "icons/128x128@2x.png",
-      "icons/icon.icns",
-      "icons/icon.ico"
-    ],
-    "externalBin": [
-      "binaries/UserBank_SSE_Core",
-      "binaries/UserBank_Stdio_Core"
-    ],
-    "createUpdaterArtifacts": true
-  },
-  "plugins": {
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/MixLabPro/userbank/releases/latest/download/update.json"
-      ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY1N0MyQzQ5RTk5NTA3NkIKUldSckI1WHBTU3g4WmVHTDdodjNnTHhCSms3cU51dmdWVTBiSzlhMHUrZWxZbDNUWm1rWlRDT3MK",
-      "windows":{
-        "installMode": "passive"
-      }
-    }
-  }
 }
