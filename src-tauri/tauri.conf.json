@@ -15,7 +15,10 @@
         "title": "userbank",
         "width": 800,
         "height": 600,
-        "hiddenTitle": true
+        "hiddenTitle": true,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "center": true
       }
     ],
     "security": {
