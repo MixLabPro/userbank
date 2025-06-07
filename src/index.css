@@ -10,6 +10,24 @@
   body {
     @apply bg-gray-50 text-gray-900 font-light;
   }
+
+  /* 隐藏所有滚动条但保持滚动功能 */
+  * {
+    /* Firefox */
+    scrollbar-width: none;
+    /* IE and Edge */
+    -ms-overflow-style: none;
+  }
+
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 确保滚动功能仍然可用 */
+  html, body {
+    overflow: auto;
+  }
 }
 
 @layer components {

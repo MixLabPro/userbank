@@ -167,9 +167,9 @@ pub fn run() {
             ))?;
 
             // 创建托盘菜单
-            let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-            let show = MenuItem::with_id(app, "show", "显示窗口", true, None::<&str>)?;
-            let hide = MenuItem::with_id(app, "hide", "隐藏窗口", true, None::<&str>)?;
+            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let show = MenuItem::with_id(app, "show", "Show Window", true, None::<&str>)?;
+            let hide = MenuItem::with_id(app, "hide", "Hide Window", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &hide, &quit])?;
 
             // 创建系统托盘
