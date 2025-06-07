@@ -154,7 +154,26 @@ async fn download_and_install_update(app: tauri::AppHandle) -> Result<(), String
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+
+    // 单例插件必须是第一个注册的插件
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            println!("检测到新实例启动，聚焦到现有窗口");
+            println!("启动参数: {:?}", args);
+            println!("工作目录: {:?}", cwd);
+            
+            // 当用户尝试打开新实例时，聚焦到现有的主窗口
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+                let _ = window.unminimize();
+            }
+        }));
+    }
+
+    builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())

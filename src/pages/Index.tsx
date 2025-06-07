@@ -477,7 +477,7 @@ const Index = () => {
                         onClick={() => setShowSettings(false)}
                       />
                       {/* 设置面板 */}
-                      <div className="absolute right-0 top-full mt-4 w-100 bg-white rounded-2xl shadow-lg shadow-gray-900/5 border border-gray-100 z-50 transform transition-all duration-300 scale-100 opacity-100">
+                      <div className="absolute right-0 top-full mt-4 w-120 bg-white rounded-2xl shadow-lg shadow-gray-900/5 border border-gray-100 z-50 transform transition-all duration-300 scale-100 opacity-100">
                         <div className="p-8">
                           {/* 设置标题 */}
                           <div className="flex items-center justify-between mb-8">
