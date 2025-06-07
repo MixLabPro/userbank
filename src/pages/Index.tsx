@@ -4,6 +4,8 @@ import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshC
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { listen } from '@tauri-apps/api/event';
+import { check, Update } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
@@ -103,21 +105,8 @@ const Index = () => {
     };
     checkAutostart();
 
-    // 监听下载进度事件
-    const unlistenProgress = listen('download-progress', (event: any) => {
-      const { progress } = event.payload;
-      setDownloadProgress(progress);
-    });
-
-    // 监听下载完成事件
-    const unlistenComplete = listen('download-complete', () => {
-      setIsDownloading(false);
-      showToast('success', t('updater.downloadComplete'));
-    });
-
     return () => {
-      unlistenProgress.then(fn => fn());
-      unlistenComplete.then(fn => fn());
+      // 清理函数，如果有其他监听器可以在这里清理
     };
   }, [t]);
   
@@ -347,13 +336,50 @@ const Index = () => {
     setUpdateInfo(null);
     
     try {
-      const result = await invoke('check_for_updates') as any;
+      console.log('开始检查更新...');
+      console.log('当前应用版本:', currentVersion);
       
-      if (result) {
-        setUpdateInfo(result);
-        showToast('success', t('updater.updateFound', { version: result.version }));
-      } else {
-        showToast('success', t('updater.upToDate'));
+      // 添加重试逻辑
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          const update = await check();
+          
+          if (update) {
+            console.log('发现新版本！');
+            console.log('当前版本:', currentVersion);
+            console.log('新版本:', update.version);
+            console.log('更新说明:', update.body || '无更新说明');
+            
+            const updateInfo = {
+              version: update.version,
+              date: update.date || '未知',
+              body: update.body || '无更新说明',
+              download_url: update.download
+            };
+            
+            setUpdateInfo(updateInfo);
+            showToast('success', t('updater.updateFound', { version: update.version }));
+            return;
+          } else {
+            console.log('检查完成：当前已是最新版本');
+            showToast('success', t('updater.upToDate'));
+            return;
+          }
+        } catch (error) {
+          console.log(`检查更新失败 (尝试 ${retryCount + 1}/${maxRetries}):`, error);
+          if (retryCount === maxRetries - 1) {
+            throw error;
+          }
+        }
+        
+        retryCount++;
+        if (retryCount < maxRetries) {
+          console.log('等待 3 秒后重试...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
       }
     } catch (error) {
       console.error('检查更新失败:', error);
@@ -399,8 +425,43 @@ const Index = () => {
     setDownloadProgress(0);
 
     try {
-      await invoke('download_and_install_update');
+      console.log('开始下载并安装更新...');
+      
+      // 重新检查更新以获取 Update 对象
+      const update = await check();
+      
+      if (!update) {
+        throw new Error('没有可用的更新');
+      }
+
+      console.log('开始下载更新...');
+      let downloaded = 0;
+
+      // 下载并安装更新
+      await update.downloadAndInstall((event) => {
+        switch (event.event) {
+          case 'Started':
+            console.log('开始下载，总大小:', event.data);
+            break;
+          case 'Progress':
+            downloaded += event.data.chunkLength;
+            console.log(`下载进度: 已下载 ${downloaded} 字节`);
+            // 由于无法获取总大小，我们只能显示已下载的字节数
+            setDownloadProgress(Math.min(downloaded / 1024 / 1024, 100)); // 假设最大100MB
+            break;
+          case 'Finished':
+            console.log('下载完成，准备安装...');
+            setIsDownloading(false);
+            showToast('success', t('updater.downloadComplete'));
+            break;
+        }
+      });
+
+      console.log('更新已安装完成，准备重启应用...');
       showToast('success', t('updater.updateSuccess'));
+      
+      // 重启应用
+      await relaunch();
     } catch (error) {
       console.error('下载安装更新失败:', error);
       showToast('error', `${t('updater.updateFailed')}: ${error instanceof Error ? error.message : t('common.unknown')}`);
