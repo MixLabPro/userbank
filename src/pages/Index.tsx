@@ -1,6 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings } from 'lucide-react';
+import { Search, Filter, Calendar, Tag, BarChart3, Plus, Edit2, Trash2, RefreshCw, AlertCircle, Database, Table, X, Check, Settings, Download, CheckCircle, Power } from 'lucide-react';
+import { invoke } from '@tauri-apps/api/core';
+import { getVersion } from '@tauri-apps/api/app';
+import { listen } from '@tauri-apps/api/event';
+
 import { useProfile } from '../hooks/useProfile';
 import { useProfileSQL } from '../hooks/useProfileSQL';
 import { useSidecar } from '../hooks/useSidecar';
@@ -41,6 +45,17 @@ const Index = () => {
   const [isAddingToClaude, setIsAddingToClaude] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
+  // 升级相关状态
+  const [currentVersion, setCurrentVersion] = useState('');
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [updateInfo, setUpdateInfo] = useState<any>(null);
+  
+  // 开机启动相关状态
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+  const [isCheckingAutostart, setIsCheckingAutostart] = useState(false);
+  
   // 启动 sidecar 服务
   const { isRunning: sidecarRunning, error: sidecarError } = useSidecar();
 
@@ -63,7 +78,48 @@ const Index = () => {
   // 初始化时获取资源目录路径和配置文件
   useEffect(() => {
     loadConfigData();
-  }, []);
+    
+    // 获取当前版本号
+    const initVersion = async () => {
+      try {
+        const version = await getVersion();
+        setCurrentVersion(version);
+      } catch (error) {
+        console.error('获取版本号失败:', error);
+      }
+    };
+    initVersion();
+
+    // 检查开机启动状态
+    const checkAutostart = async () => {
+      try {
+        // 动态导入 autostart 插件
+        const { isEnabled } = await import('@tauri-apps/plugin-autostart');
+        const enabled = await isEnabled();
+        setAutostartEnabled(enabled);
+      } catch (error) {
+        console.error('检查开机启动状态失败:', error);
+      }
+    };
+    checkAutostart();
+
+    // 监听下载进度事件
+    const unlistenProgress = listen('download-progress', (event: any) => {
+      const { progress } = event.payload;
+      setDownloadProgress(progress);
+    });
+
+    // 监听下载完成事件
+    const unlistenComplete = listen('download-complete', () => {
+      setIsDownloading(false);
+      showToast('success', t('updater.downloadComplete'));
+    });
+
+    return () => {
+      unlistenProgress.then(fn => fn());
+      unlistenComplete.then(fn => fn());
+    };
+  }, [t]);
   
   // 使用 MCP 服务获取数据
   const { data: profileData, loading, error, refreshData } = useProfile();
@@ -283,6 +339,75 @@ const Index = () => {
     }
   };
 
+  // 检查更新
+  const handleCheckUpdate = async () => {
+    if (isCheckingUpdate) return;
+    
+    setIsCheckingUpdate(true);
+    setUpdateInfo(null);
+    
+    try {
+      const result = await invoke('check_for_updates') as any;
+      
+      if (result) {
+        setUpdateInfo(result);
+        showToast('success', t('updater.updateFound', { version: result.version }));
+      } else {
+        showToast('success', t('updater.upToDate'));
+      }
+    } catch (error) {
+      console.error('检查更新失败:', error);
+      showToast('error', `${t('updater.updateFailed')}: ${error instanceof Error ? error.message : t('common.unknown')}`);
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  // 处理开机启动开关
+  const handleAutostartChange = async (checked: boolean) => {
+    setIsCheckingAutostart(true);
+    try {
+      // 动态导入 autostart 插件
+      const { enable, disable } = await import('@tauri-apps/plugin-autostart');
+      
+      if (checked) {
+        await enable();
+      } else {
+        await disable();
+      }
+      setAutostartEnabled(checked);
+      showToast('success', checked ? t('toast.autostartEnabled') : t('toast.autostartDisabled'));
+    } catch (error) {
+      console.error('设置开机启动失败:', error);
+      showToast('error', t('toast.autostartFailed'));
+    } finally {
+      setIsCheckingAutostart(false);
+    }
+  };
+
+  // 下载并安装更新
+  const handleDownloadAndInstall = async () => {
+    if (!updateInfo || isDownloading) return;
+
+    const confirmUpdate = window.confirm(
+      `${t('updater.updateFound', { version: updateInfo.version })}\n${t('updater.releaseDate')}：${updateInfo.date}\n${t('updater.releaseNotes')}：${updateInfo.body}\n${t('updater.confirmUpdate')}`
+    );
+
+    if (!confirmUpdate) return;
+
+    setIsDownloading(true);
+    setDownloadProgress(0);
+
+    try {
+      await invoke('download_and_install_update');
+      showToast('success', t('updater.updateSuccess'));
+    } catch (error) {
+      console.error('下载安装更新失败:', error);
+      showToast('error', `${t('updater.updateFailed')}: ${error instanceof Error ? error.message : t('common.unknown')}`);
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6 lg:p-12">
@@ -352,94 +477,237 @@ const Index = () => {
                         onClick={() => setShowSettings(false)}
                       />
                       {/* 设置面板 */}
-                      <div className="absolute right-0 top-full mt-2 w-100 bg-white rounded-xl shadow-2xl shadow-gray-900/20 border border-gray-100 z-50 transform transition-all duration-200 scale-100 opacity-100">
-                        <div className="p-6">
+                      <div className="absolute right-0 top-full mt-4 w-100 bg-white rounded-2xl shadow-lg shadow-gray-900/5 border border-gray-100 z-50 transform transition-all duration-300 scale-100 opacity-100">
+                        <div className="p-8">
                           {/* 设置标题 */}
-                          <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-semibold text-gray-900">{t('common.settings')}</h3>
+                          <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-light text-gray-900 tracking-tight">{t('common.settings')}</h3>
                             <button
                               onClick={() => setShowSettings(false)}
-                              className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200"
                             >
-                              <X className="w-4 h-4" />
+                              <X className="w-5 h-5" />
                             </button>
                           </div>
 
                           {/* 语言设置 */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <Settings className="w-5 h-5 text-gray-600" />
-                              <h4 className="text-sm font-medium text-gray-900">{t('common.language')}</h4>
+                          <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                  <Settings className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-900">{t('common.language')}</h4>
+                                  <p className="text-xs text-gray-500 font-light">选择界面语言</p>
+                                </div>
+                              </div>
+                              <LanguageSwitcher />
                             </div>
-                            <LanguageSwitcher />
-                          </div>            
+                          </div>
 
                           {/* MCP服务器配置 */}
-                          <div className="space-y-4 mt-6 pt-6 border-t border-gray-100">
-                              <div className="flex items-center gap-3 mb-3">
+                          <div className="bg-gray-50 rounded-xl p-6 mb-8">
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                                 <Database className="w-5 h-5 text-gray-600" />
-                                <h4 className="text-sm font-medium text-gray-900">{t('config.mcp')}</h4>
                               </div>
-                              <div className="bg-white rounded-md p-3 border border-gray-200 max-h-64 overflow-y-auto">
-                                {mcpServersConfig ? (
-                                  <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                                    {JSON.stringify(mcpServersConfig, null, 2)}
-                                  </pre>
-                                ) : (
-                                                                      <div className="text-gray-500 text-sm">
-                                      {t('common.loading')}
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900">{t('config.mcp')}</h4>
+                                <p className="text-xs text-gray-500 font-light">{t('config.mcpDescription')}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-xl p-4 border border-gray-200 max-h-48 overflow-y-auto mb-6">
+                              {mcpServersConfig ? (
+                                <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                                  {JSON.stringify(mcpServersConfig, null, 2)}
+                                </pre>
+                              ) : (
+                                <div className="flex items-center justify-center py-8">
+                                  <div className="text-center">
+                                    <RefreshCw className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
+                                    <div className="text-gray-500 text-sm font-light">{t('common.loading')}</div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 添加到编辑器按钮 */}
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-3">
+                                <button
+                                  onClick={handleAddToCursor}
+                                  disabled={!mcpServersConfig || isAddingToCursor}
+                                  className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 disabled:cursor-not-allowed font-light"
+                                >
+                                  {isAddingToCursor ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                      <span className="text-sm">{t('common.loading')}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Settings className="w-4 h-4" />
+                                      <span className="text-sm">{t('config.cursor')}</span>
+                                    </>
+                                  )}
+                                </button>
+                                
+                                <button
+                                  onClick={handleAddToClaude}
+                                  disabled={!mcpServersConfig || isAddingToClaude}
+                                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 disabled:cursor-not-allowed font-light"
+                                >
+                                  {isAddingToClaude ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                      <span className="text-sm">{t('common.loading')}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Settings className="w-4 h-4" />
+                                      <span className="text-sm">{t('config.claude')}</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                              <p className="text-xs text-gray-500 text-center font-light">
+                                {t('config.addToEditorConfig')}
+                              </p>
+                            </div>
+                          </div>
+                         {/* 开机启动设置 */}
+                         <div className="bg-gray-50 rounded-xl p-6 mb-8">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                  <Power className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-gray-900">{t('autostart.title')}</h4>
+                                  <p className="text-xs text-gray-500 font-light mt-1">{t('autostart.description')}</p>
+                                </div>
+                              </div>
+                              <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={autostartEnabled}
+                                  onChange={(e) => handleAutostartChange(e.target.checked)}
+                                  disabled={isCheckingAutostart}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-gray-900/10 rounded-full peer peer-checked:after:translate-x-6 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-900 disabled:opacity-50 shadow-sm"></div>
+                              </label>
+                            </div>
+                            <p className="text-xs text-gray-500 font-light mt-4 pl-13">
+                              {t('autostart.hint')}
+                            </p>
+                          </div>
+
+                         {/* 版本信息和升级检测 */}
+                         <div className="bg-gray-50 rounded-xl p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                <CheckCircle className="w-5 h-5 text-gray-600" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-900">{t('updater.title')}</h4>
+                                <p className="text-xs text-gray-500 font-light">检查应用更新</p>
+                              </div>
+                            </div>
+                            
+                            {/* 当前版本 */}
+                            <div className="bg-white rounded-xl p-4 mb-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600 font-light">{t('updater.currentVersion')}</span>
+                                <span className="text-sm font-medium text-gray-900 bg-gray-100 px-3 py-1 rounded-lg">{currentVersion}</span>
+                              </div>
+                            </div>
+
+                            {/* 检查更新按钮 */}
+                            <button
+                              onClick={handleCheckUpdate}
+                              disabled={isCheckingUpdate}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 disabled:cursor-not-allowed font-light mb-4"
+                            >
+                              {isCheckingUpdate ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                  <span className="text-sm">{t('updater.checking')}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <RefreshCw className="w-4 h-4" />
+                                  <span className="text-sm">{t('updater.checkUpdate')}</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* 更新信息 */}
+                            {updateInfo && (
+                              <div className="bg-blue-50 rounded-xl p-6 space-y-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Download className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-blue-900">{t('updater.updateAvailable')}</span>
+                                    <p className="text-xs text-blue-700 font-light">版本 {updateInfo.version}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="bg-white rounded-xl p-4 space-y-3">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-600 font-light">{t('updater.releaseDate')}:</span>
+                                    <span className="text-sm text-gray-900">{updateInfo.date}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600 font-light">{t('updater.releaseNotes')}:</span>
+                                    <div className="mt-2 bg-gray-50 rounded-lg p-3 max-h-24 overflow-y-auto">
+                                      <p className="text-xs text-gray-700 font-light leading-relaxed">
+                                        {updateInfo.body}
+                                      </p>
                                     </div>
+                                  </div>
+                                </div>
+                                
+                                {/* 下载安装按钮 */}
+                                <button
+                                  onClick={handleDownloadAndInstall}
+                                  disabled={isDownloading}
+                                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 disabled:cursor-not-allowed font-light"
+                                >
+                                  {isDownloading ? (
+                                    <>
+                                      <RefreshCw className="w-4 h-4 animate-spin" />
+                                      <span className="text-sm">
+                                        {downloadProgress > 0 ? 
+                                          t('updater.downloadProgress', { progress: downloadProgress }) : 
+                                          t('updater.downloading')
+                                        }
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Download className="w-4 h-4" />
+                                      <span className="text-sm">{t('updater.downloadAndInstall')}</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* 下载进度条 */}
+                                {isDownloading && downloadProgress > 0 && (
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${downloadProgress}%` }}
+                                    ></div>
+                                  </div>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 mt-2">
-                                {t('config.mcpDescription')}
-                              </p>
-
-                              {/* 添加到Cursor按钮 */}
-                              <div className="mt-6 pt-4 border-t border-gray-100">
-                                <div className="grid grid-cols-2 gap-3">
-                                  <button
-                                    onClick={handleAddToCursor}
-                                    disabled={!mcpServersConfig || isAddingToCursor}
-                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-900 hover:bg-black disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
-                                  >
-                                    {isAddingToCursor ? (
-                                      <>
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
-                                        {t('common.loading')}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Settings className="w-4 h-4" />
-                                        {t('config.cursor')}
-                                      </>
-                                    )}
-                                  </button>
-                                  
-                                  <button
-                                    onClick={handleAddToClaude}
-                                    disabled={!mcpServersConfig || isAddingToClaude}
-                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all duration-200 disabled:cursor-not-allowed"
-                                  >
-                                    {isAddingToClaude ? (
-                                      <>
-                                        <RefreshCw className="w-4 h-4 animate-spin" />
-                                        {t('common.loading')}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Settings className="w-4 h-4" />
-                                        {t('config.claude')}
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-2 text-center">
-                                  {t('config.addToEditorConfig')}
-                                </p>
-                              </div>
-                          </div>
-      
+                            )}
+                          </div>     
                         </div>
                       </div>
                     </>

@@ -91,6 +91,26 @@
     "addToEditorConfig": "Add MCP server configuration to editor configuration file",
     "addToCursorConfig": "Add MCP server configuration to Cursor configuration file"
   },
+  "updater": {
+    "title": "App Update",
+    "currentVersion": "Current Version",
+    "checkUpdate": "Check Update",
+    "checking": "Checking...",
+    "downloading": "Downloading...",
+    "installing": "Installing...",
+    "upToDate": "Already up to date",
+    "updateAvailable": "Update Available",
+    "updateFound": "New version {{version}} found",
+    "releaseDate": "Release Date",
+    "releaseNotes": "Release Notes",
+    "downloadAndInstall": "Download & Install",
+    "confirmUpdate": "Update now?",
+    "updateSuccess": "Update successful, app will restart",
+    "updateFailed": "Update failed",
+    "downloadProgress": "Download progress: {{progress}}%",
+    "downloadComplete": "Download complete, preparing to install",
+    "restartRequired": "Update complete, app restart required"
+  },
   "status": {
     "sidecarError": "Sidecar Error",
     "sidecarStarting": "Sidecar Starting",
@@ -141,6 +161,11 @@
       "getCategories": "Get Category System"
     }
   },
+  "autostart": {
+    "title": "Auto Start",
+    "description": "Automatically start app on system boot",
+    "hint": "When enabled, the app will automatically run when the system starts"
+  },
   "toast": {
     "configNotAvailable": "Configuration information not available, please refresh configuration first",
     "addToCursorSuccess": "Successfully added to Cursor configuration file",
@@ -150,7 +175,10 @@
     "addRecordFailed": "Failed to add record, please try again",
     "updateRecordFailed": "Failed to update record",
     "deleteRecordSuccess": "Record deleted successfully",
-    "deleteRecordFailed": "Failed to delete record"
+    "deleteRecordFailed": "Failed to delete record",
+    "autostartEnabled": "Auto start enabled",
+    "autostartDisabled": "Auto start disabled",
+    "autostartFailed": "Failed to set auto start"
   },
 
   "tables": {

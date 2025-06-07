@@ -91,6 +91,26 @@
     "addToEditorConfig": "将MCP服务器配置添加到编辑器的配置文件中",
     "addToCursorConfig": "将MCP服务器配置添加到Cursor的配置文件中"
   },
+  "updater": {
+    "title": "应用更新",
+    "currentVersion": "当前版本",
+    "checkUpdate": "检查更新",
+    "checking": "检查中...",
+    "downloading": "下载中...",
+    "installing": "安装中...",
+    "upToDate": "当前已是最新版本",
+    "updateAvailable": "发现新版本",
+    "updateFound": "发现新版本 {{version}}",
+    "releaseDate": "发布日期",
+    "releaseNotes": "更新说明",
+    "downloadAndInstall": "下载并安装",
+    "confirmUpdate": "是否现在更新？",
+    "updateSuccess": "更新成功，应用将重启",
+    "updateFailed": "更新失败",
+    "downloadProgress": "下载进度: {{progress}}%",
+    "downloadComplete": "下载完成，准备安装",
+    "restartRequired": "更新完成，需要重启应用"
+  },
   "status": {
     "sidecarError": "Sidecar 错误",
     "sidecarStarting": "Sidecar 启动中",
@@ -141,6 +161,11 @@
       "getCategories": "获取分类体系"
     }
   },
+  "autostart": {
+    "title": "开机启动",
+    "description": "开机时自动启动应用",
+    "hint": "启用后，应用将在系统启动时自动运行"
+  },
   "toast": {
     "configNotAvailable": "配置信息不可用，请先刷新配置",
     "addToCursorSuccess": "已成功添加到Cursor配置文件",
@@ -150,7 +175,10 @@
     "addRecordFailed": "添加记录失败，请重试",
     "updateRecordFailed": "更新记录失败",
     "deleteRecordSuccess": "记录删除成功",
-    "deleteRecordFailed": "删除记录失败"
+    "deleteRecordFailed": "删除记录失败",
+    "autostartEnabled": "已启用开机启动",
+    "autostartDisabled": "已禁用开机启动",
+    "autostartFailed": "设置开机启动失败"
   },
 
   "tables": {
