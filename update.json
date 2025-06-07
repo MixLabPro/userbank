@@ -1,9 +1,9 @@
 {
-    "version": "0.1.2",
+    "version": "0.1.3",
     "platforms": {
       "windows-x86_64": {
-        "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUVjFWR1kxUk9XejFPd05qcjBpaGxXZ25tazNtL0JYdmdLY1lwV24rdlY0Sy9Ycmd1cWJDeWg2aGc3MTAxSXV2U0YvNnBLY0laNWpONEFUekJlSW1JSFJ4UXZNTHNoNVE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ5MjYyODQwCWZpbGU6VXNlckJhbmtfMC4xLjFfeDY0LXNldHVwLmV4ZQozdUVtQzhjNWl0U0NaYzlGUW1tM3Q1VDNLUWVJQjB2L3BFTlNBa0dWYjAyT3V5UkR1VXZTWTlXRmUwUWtCWngvZUVBU3VteklycWlDOUI0NDYyMndDdz09Cg==",
-        "url": "https://github.com/MixLabPro/userbank/releases/download/0.1.2/UserBank_0.1.2_x64-setup.exe"
+        "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSckI1WHBTU3g4WmUweFAxd09xSjVCZjJUajNOSUJBVFREemZ6WmlhZ1dIVVJ6aGo2YVIvZ0RiVmZGR3g2OS9mYThMSWdhaXdsRkZVMW1mZ1REWTh1VDBFQXlGaWZ5aGdBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ5MjY0NzgxCWZpbGU6VXNlckJhbmtfMC4xLjNfeDY0LXNldHVwLmV4ZQpKWE84UGt6YllreXg3YXNjSGpZTW94bFhJUi9BVWZONjlBRzhkOWRHUFJTbzlZZ3hmTmhyYjZtSENhVXJSWU91a1RCc1d3cG9YaDVrVE5WempnOUVEdz09Cg====",
+        "url": "https://github.com/MixLabPro/userbank/releases/download/0.1.3/UserBank_0.1.3_x64-setup.exe"
       }
     }
   }
